@@ -13,3 +13,5 @@ kurohelper service module
 ```bash
 git clone https://github.com/kuro-helper/kurohelper-service
 ```
+
+- 本專案解決的是底層專案多層級的專案合併。此service並非是三層式架構的service layer，而是任何非展示層的通稱底層服務之意

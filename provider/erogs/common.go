@@ -1,0 +1,54 @@
+package erogs
+
+import (
+	"fmt"
+	"strings"
+
+	"kurohelperservice"
+)
+
+var (
+	ShubetuMap = map[int]string{
+		1: "原画",
+		2: "シナリオ",
+		3: "音楽",
+		4: "キャラデザ",
+		5: "声優",
+		6: "歌手",
+		7: "その他",
+	}
+	Role = map[int]string{
+		1: "メイン",
+		2: "サブ",
+		3: "主人公",
+		4: "その他",
+	}
+)
+
+func MakeDMMImageURL(dmm string) string {
+	return fmt.Sprintf("https://pics.dmm.co.jp/digital/pcgame/%[1]s/%[1]spl.jpg", dmm)
+}
+
+func buildSearchStringSQL(search string) string {
+	search = strings.ReplaceAll(search, "'", "''")
+	search = strings.ReplaceAll(search, "%", "\\%")
+	search = strings.ReplaceAll(search, "_", "\\_")
+	if strings.TrimSpace(search) == "" {
+		return ""
+	}
+
+	result := "%"
+	searchRune := []rune(search)
+	for i, r := range searchRune {
+		if kurohelperservice.IsEnglish(r) && i < len(searchRune)-1 {
+			if kurohelperservice.IsEnglish(searchRune[i+1]) {
+				result += string(r)
+			} else {
+				result += string(r) + "%"
+			}
+		} else {
+			result += string(r) + "%"
+		}
+	}
+	return result
+}

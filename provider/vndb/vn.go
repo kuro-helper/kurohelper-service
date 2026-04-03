@@ -1,0 +1,267 @@
+package vndb
+
+import (
+	"encoding/json"
+	"fmt"
+	"kurohelperservice"
+	"math/rand"
+	"strings"
+)
+
+// [VNDB]品牌(發行單位)Response
+type DeveloperResponse struct {
+	Aliases  []string `json:"aliases"`
+	Name     string   `json:"name"`
+	Original string   `json:"original"`
+}
+
+type GetVnIDUseListResponse struct {
+	ID       string `json:"id"`
+	Title    string `json:"title"`
+	Alttitle string `json:"alttitle"`
+	Image    *struct {
+		Thumbnail string `json:"thumbnail"`
+	} `json:"image"`
+	LengthMinutes *int                `json:"length_minutes"` // 遊戲長度平均(分鐘)
+	LengthVotes   int                 `json:"length_votes"`   // 遊戲長度提交樣本數
+	Average       *float64            `json:"average"`        // 平均分數
+	Rating        *float64            `json:"rating"`         // Bayesian分數
+	VoteCount     int                 `json:"votecount"`      // 分數提交樣本數
+	Developers    []DeveloperResponse `json:"developers"`
+}
+
+// 使用關鍵字模糊搜尋遊戲
+func GetVNByFuzzy(keyword string) (*BasicResponse[GetVnUseIDResponse], error) {
+	req := VndbCreate() // 建立基本request結構
+
+	// 依照關鍵字的相關度排序
+	reqSort := "searchrank"
+	req.Sort = &reqSort
+
+	// 限制回傳一筆結果
+	reqResults := 1
+	req.Results = &reqResults
+
+	// 指定要取得的欄位
+	titleFields := "title, alttitle"
+	imageFields := "image.url, image.sexual, image.violence"
+	developersFields := "developers.name, developers.original, developers.aliases"
+	nameFields := "titles.lang, titles.title, titles.official, titles.main"
+	staffFields := "staff.name, staff.role, staff.aliases.name, staff.aliases.ismain"
+	characterFields := "va.character.original, va.character.name, va.character.vns.role, va.character.vns.id"
+	lengthFields := "length_minutes, length_votes"
+	scoreFields := "average, rating, votecount"
+	relationsFields := "relations.titles.title, relations.titles.main"
+
+	allFields := []string{
+		titleFields,
+		imageFields,
+		developersFields,
+		nameFields,
+		staffFields,
+		characterFields,
+		lengthFields,
+		scoreFields,
+		relationsFields,
+	}
+	req.Fields = strings.Join(allFields, ", ")
+
+	// 設定搜尋條件
+	req.Filters = []any{"search", "=", keyword}
+
+	jsonData, err := json.Marshal(req)
+	if err != nil {
+		return nil, err
+	}
+
+	body, err := sendPostRequest("/vn", jsonData)
+	if err != nil {
+		return nil, err
+	}
+
+	var res BasicResponse[GetVnUseIDResponse]
+	err = json.Unmarshal(body, &res)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(res.Results) == 0 {
+		return nil, kurohelperservice.ErrSearchNoContent
+	}
+
+	return &res, nil
+}
+
+// 使用VNDB視覺小說ID精確搜尋遊戲
+func GetVNByID(id string) (*BasicResponse[GetVnUseIDResponse], error) {
+	req := VndbCreate() // 建立基本request結構
+
+	// 不需要排序
+	reqSort := ""
+	req.Sort = &reqSort
+
+	// 限制回傳一筆結果
+	reqResults := 1
+	req.Results = &reqResults
+
+	// 指定要取得的欄位
+	titleFields := "title, alttitle"
+	imageFields := "image.url, image.sexual, image.violence"
+	developersFields := "developers.name, developers.original, developers.aliases"
+	nameFields := "titles.lang, titles.title, titles.official, titles.main"
+	staffFields := "staff.name, staff.role, staff.aliases.name, staff.aliases.ismain"
+	characterFields := "va.character.original, va.character.name, va.character.vns.role, va.character.vns.id"
+	lengthFields := "length_minutes, length_votes"
+	scoreFields := "average, rating, votecount"
+	relationsFields := "relations.titles.title, relations.titles.main"
+
+	allFields := []string{
+		titleFields,
+		imageFields,
+		developersFields,
+		nameFields,
+		staffFields,
+		characterFields,
+		lengthFields,
+		scoreFields,
+		relationsFields,
+	}
+	req.Fields = strings.Join(allFields, ", ")
+
+	// 設定搜尋條件
+	req.Filters = []any{"id", "=", id}
+
+	jsonData, err := json.Marshal(req)
+	if err != nil {
+		return nil, err
+	}
+
+	body, err := sendPostRequest("/vn", jsonData)
+	if err != nil {
+		return nil, err
+	}
+
+	var res BasicResponse[GetVnUseIDResponse]
+	err = json.Unmarshal(body, &res)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(res.Results) == 0 {
+		return nil, kurohelperservice.ErrSearchNoContent
+	}
+
+	return &res, nil
+}
+
+// 隨機搜尋遊戲
+func GetRandomVN() (*BasicResponse[GetVnUseIDResponse], error) {
+	// 獲取遊戲id總數
+	resStat, err := GetStats()
+	if err != nil {
+		return nil, err
+	}
+
+	req := VndbCreate() // 建立基本request結構
+
+	// 不需要排序
+	reqSort := ""
+	req.Sort = &reqSort
+
+	// 限制回傳一筆結果
+	reqResults := 1
+	req.Results = &reqResults
+
+	// 指定要取得的欄位
+	titleFields := "title, alttitle"
+	imageFields := "image.url, image.sexual, image.violence"
+	developersFields := "developers.name, developers.original, developers.aliases"
+	nameFields := "titles.lang, titles.title, titles.official, titles.main"
+	staffFields := "staff.name, staff.role, staff.aliases.name, staff.aliases.ismain"
+	characterFields := "va.character.original, va.character.name, va.character.vns.role, va.character.vns.id"
+	lengthFields := "length_minutes, length_votes"
+	scoreFields := "average, rating, votecount"
+	relationsFields := "relations.titles.title, relations.titles.main"
+
+	allFields := []string{
+		titleFields,
+		imageFields,
+		developersFields,
+		nameFields,
+		staffFields,
+		characterFields,
+		lengthFields,
+		scoreFields,
+		relationsFields,
+	}
+
+	req.Fields = strings.Join(allFields, ", ")
+
+	var res BasicResponse[GetVnUseIDResponse]
+	for range 3 { // 最多嘗試3次
+		// 產生隨機ID
+		randomVNID := fmt.Sprintf("v%d", rand.Intn(resStat.VN))
+
+		// 設定搜尋條件(隨機ID且投票數>=100)
+		req.Filters = []any{"and", []any{"id", ">=", randomVNID}, []any{"votecount", ">=", "30"}, []any{"rating", ">=", "70"}}
+
+		jsonData, err := json.Marshal(req)
+		if err != nil {
+			return nil, err
+		}
+
+		body, err := sendPostRequest("/vn", jsonData)
+		if err != nil {
+			return nil, err
+		}
+
+		err = json.Unmarshal(body, &res)
+		if err != nil {
+			return nil, err
+		}
+
+		// 如果找到結果就回傳
+		if len(res.Results) > 0 {
+			return &res, nil
+		}
+	}
+	return nil, kurohelperservice.ErrSearchNoContent
+}
+
+// 使用關鍵字搜尋遊戲ID列表(用於列表顯示)
+func GetVnID(keyword string) ([]GetVnIDUseListResponse, error) {
+	// 建立基本request結構
+	req := VndbCreate()
+
+	// 依照關鍵字的相關度排序
+	reqSort := "searchrank"
+	req.Sort = &reqSort
+
+	// 指定要取得的欄位
+	req.Fields = "id, title, alttitle, developers.name, developers.original, developers.aliases, image.thumbnail, average, rating, votecount, length_minutes, length_votes"
+
+	// 設定搜尋條件
+	req.Filters = []any{"search", "=", keyword}
+
+	jsonData, err := json.Marshal(req)
+	if err != nil {
+		return nil, err
+	}
+
+	body, err := sendPostRequest("/vn", jsonData)
+	if err != nil {
+		return nil, err
+	}
+
+	var res BasicResponse[GetVnIDUseListResponse]
+	err = json.Unmarshal(body, &res)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(res.Results) == 0 {
+		return nil, kurohelperservice.ErrSearchNoContent
+	}
+
+	return res.Results, nil
+}

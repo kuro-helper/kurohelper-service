@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+
+	"kurohelperservice"
 )
 
 // 只抓一筆(LIMIT 1)
@@ -35,8 +37,8 @@ type CreatorList struct {
 
 // Use kewords search creator list data
 func SearchCreatorListByKeyword(keywords []string) ([]CreatorList, error) {
-	if keywords == nil {
-		return nil, nil
+	if len(keywords) == 0 {
+		return nil, kurohelperservice.ErrSearchNoContent
 	}
 
 	// pre-build keySQL
@@ -60,7 +62,7 @@ func SearchCreatorListByKeyword(keywords []string) ([]CreatorList, error) {
 	var res []CreatorList
 	err = json.Unmarshal([]byte(jsonText), &res)
 	if err != nil {
-		fmt.Println(jsonText)
+
 		return nil, err
 	}
 
@@ -87,8 +89,8 @@ func SearchCreatorByID(id int) (*Creator, error) {
 
 // Use kewords search single creator data
 func SearchCreatorByKeyword(keywords []string) (*Creator, error) {
-	if keywords == nil {
-		return nil, nil
+	if len(keywords) == 0 {
+		return nil, kurohelperservice.ErrSearchNoContent
 	}
 
 	// pre-build keySQL

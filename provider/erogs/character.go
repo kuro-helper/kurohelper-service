@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+
+	"kurohelperservice"
 )
 
 type Character struct {
@@ -35,8 +37,8 @@ type CharacterList struct {
 
 // Use kewords search character list data
 func SearchCharacterListByKeyword(keywords []string) ([]CharacterList, error) {
-	if keywords == nil {
-		return nil, nil
+	if len(keywords) == 0 {
+		return nil, kurohelperservice.ErrSearchNoContent
 	}
 
 	// pre-build keySQL
@@ -86,8 +88,8 @@ func SearchCharacterByID(id int) (*Character, error) {
 
 // Use kewords search single character data
 func SearchCharacterByKeyword(keywords []string) (*Character, error) {
-	if keywords == nil {
-		return nil, nil
+	if len(keywords) == 0 {
+		return nil, kurohelperservice.ErrSearchNoContent
 	}
 
 	// pre-build keySQL

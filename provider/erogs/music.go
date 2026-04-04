@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+
+	"kurohelperservice"
 )
 
 type (
@@ -42,8 +44,8 @@ type (
 
 // Use kewords search music list data
 func SearchMusicListByKeyword(keywords []string) ([]MusicList, error) {
-	if keywords == nil {
-		return nil, nil
+	if len(keywords) == 0 {
+		return nil, kurohelperservice.ErrSearchNoContent
 	}
 
 	// pre-build keySQL
@@ -67,7 +69,7 @@ func SearchMusicListByKeyword(keywords []string) ([]MusicList, error) {
 	var res []MusicList
 	err = json.Unmarshal([]byte(jsonText), &res)
 	if err != nil {
-		fmt.Println(jsonText)
+
 		return nil, err
 	}
 
@@ -86,7 +88,7 @@ func SearchMusicByID(id int) (*Music, error) {
 	var res Music
 	err = json.Unmarshal([]byte(jsonText), &res)
 	if err != nil {
-		fmt.Println(jsonText)
+
 		return nil, err
 	}
 
@@ -95,8 +97,8 @@ func SearchMusicByID(id int) (*Music, error) {
 
 // Use kewords search single music data
 func SearchMusicByKeyword(keywords []string) (*Music, error) {
-	if keywords == nil {
-		return nil, nil
+	if len(keywords) == 0 {
+		return nil, kurohelperservice.ErrSearchNoContent
 	}
 
 	// pre-build keySQL
@@ -120,7 +122,7 @@ func SearchMusicByKeyword(keywords []string) (*Music, error) {
 	var res Music
 	err = json.Unmarshal([]byte(jsonText), &res)
 	if err != nil {
-		fmt.Println(jsonText)
+
 		return nil, err
 	}
 

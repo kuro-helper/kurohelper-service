@@ -2,7 +2,7 @@
 
 kurohelper service module
 
-> [!NOTICE]
+> [!IMPORTANT]
 >
 > 為了重整專案的依賴以及降低專案複雜度以及重新整理底層專案版本號，故新設此專案。
 >

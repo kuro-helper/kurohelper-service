@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+
+	"kurohelperservice"
 )
 
 type Game struct {
@@ -47,8 +49,8 @@ type GameList struct {
 
 // Use kewords search game list data
 func SearchGameListByKeyword(keywords []string) ([]GameList, error) {
-	if keywords == nil {
-		return nil, nil
+	if len(keywords) == 0 {
+		return nil, kurohelperservice.ErrSearchNoContent
 	}
 
 	// pre-build keySQL
@@ -72,7 +74,7 @@ func SearchGameListByKeyword(keywords []string) ([]GameList, error) {
 	var res []GameList
 	err = json.Unmarshal([]byte(jsonText), &res)
 	if err != nil {
-		fmt.Println(jsonText)
+
 		return nil, err
 	}
 
@@ -99,8 +101,8 @@ func SearchGameByID(id int) (*Game, error) {
 
 // Use kewords search single game data
 func SearchGameByKeyword(keywords []string) (*Game, error) {
-	if keywords == nil {
-		return nil, nil
+	if len(keywords) == 0 {
+		return nil, kurohelperservice.ErrSearchNoContent
 	}
 
 	// pre-build keySQL

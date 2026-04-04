@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+
+	"kurohelperservice"
 )
 
 type (
@@ -49,7 +51,7 @@ func SearchBrandByID(id int) (*Brand, error) {
 	var res Brand
 	err = json.Unmarshal([]byte(jsonText), &res)
 	if err != nil {
-		fmt.Println(jsonText)
+
 		return nil, err
 	}
 
@@ -58,8 +60,8 @@ func SearchBrandByID(id int) (*Brand, error) {
 
 // Use kewords search single brand data
 func SearchBrandByKeyword(keywords []string) (*Brand, error) {
-	if keywords == nil {
-		return nil, nil
+	if len(keywords) == 0 {
+		return nil, kurohelperservice.ErrSearchNoContent
 	}
 
 	// pre-build keySQL
@@ -83,7 +85,7 @@ func SearchBrandByKeyword(keywords []string) (*Brand, error) {
 	var res Brand
 	err = json.Unmarshal([]byte(jsonText), &res)
 	if err != nil {
-		fmt.Println(jsonText)
+
 		return nil, err
 	}
 

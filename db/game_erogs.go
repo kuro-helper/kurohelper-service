@@ -17,11 +17,11 @@ func EnsureGameErogs(db *gorm.DB, gameID int, gameName string, gameImage string,
 	return &game, nil
 }
 
-func UpdateGameErogsImage(db *gorm.DB, id int, game *GameErogs) error {
-	game.UpdatedAt = time.Now()
-	return db.Model(&GameErogs{}).Where("id = ?", id).
-		Select("Image", "UpdatedAt").
-		Updates(game).Error
+func UpdateGameErogsImageByID(db *gorm.DB, id int, image string) error {
+	return db.Model(&GameErogs{}).Where("id = ?", id).Updates(GameErogs{
+		Image:     image,
+		UpdatedAt: time.Now(),
+	}).Error
 }
 
 func GetAllGameErogs(db *gorm.DB) ([]GameErogs, error) {

@@ -15,7 +15,7 @@ type Game struct {
 	Gamename                         string `json:"gamename"`
 	SellDay                          string `json:"sellday"`
 	Model                            string `json:"model"`
-	DMM                              string `json:"dmm"` // dmm image
+	DMM                              string `json:"dmm"` // part of dmm image
 	Median                           string `json:"median"`
 	TokutenCount                     string `json:"count2"`
 	TotalPlayTimeMedian              string `json:"total_play_time_median"`
@@ -40,7 +40,7 @@ type GameList struct {
 	ID                               int    `json:"id"`
 	Name                             string `json:"name"`
 	Category                         string `json:"category"`
-	DMM                              string `json:"dmm"` // dmm image
+	DMM                              string `json:"dmm"` // part of dmm image
 	Median                           string `json:"median"`
 	TokutenCount                     string `json:"count2"`
 	TotalPlayTimeMedian              string `json:"total_play_time_median"`
@@ -81,9 +81,9 @@ func SearchGameListByKeyword(keywords []string) ([]GameList, error) {
 	return res, nil
 }
 
-// Use kewords search single game data
+// Use id search single game data
 func SearchGameByID(id int) (*Game, error) {
-	sql := buildGameSQL(fmt.Sprintf("WHERE id = '%d'", id))
+	sql := buildGameSQL(fmt.Sprintf("WHERE id = '%d'", id), 1)
 
 	jsonText, err := sendPostRequest(sql)
 	if err != nil {
@@ -97,6 +97,33 @@ func SearchGameByID(id int) (*Game, error) {
 	}
 
 	return &res, nil
+}
+
+// Use multiple IDs search game data
+func SearchGameByIDs(ids []int) ([]Game, error) {
+	if len(ids) == 0 {
+		return nil, kurohelperservice.ErrSearchNoContent
+	}
+
+	idList := make([]string, 0, len(ids))
+	for _, id := range ids {
+		idList = append(idList, fmt.Sprintf("%d", id))
+	}
+
+	sql := buildGameSQL(fmt.Sprintf("WHERE id IN (%s)", strings.Join(idList, ",")), len(ids))
+
+	jsonText, err := sendPostRequest(sql)
+	if err != nil {
+		return nil, err
+	}
+
+	var res []Game
+	err = json.Unmarshal([]byte(jsonText), &res)
+	if err != nil {
+		return nil, err
+	}
+
+	return res, nil
 }
 
 // Use kewords search single game data
@@ -116,7 +143,7 @@ func SearchGameByKeyword(keywords []string) (*Game, error) {
 	}
 	keySQL += strings.Join(keywordSQLList, " OR ")
 
-	sql := buildGameSQL(keySQL)
+	sql := buildGameSQL(keySQL, 1)
 
 	jsonText, err := sendPostRequest(sql)
 	if err != nil {
@@ -158,16 +185,26 @@ FROM (
 // build search game sql
 // Arguments:
 //   - keySQL: A pre-constructed SQL WHERE-clause fragment.
-func buildGameSQL(keySQL string) string {
+func buildGameSQL(keySQL string, limit int) string {
+	if limit <= 0 {
+		limit = 1
+	}
+
+	// limit > 1 時若仍用 row_to_json，會回傳多列；sendPostRequest 只取第一個 td，且 Unmarshal 需要單一 JSON 陣列。
+	selectJSON := "SELECT row_to_json(t)"
+	if limit > 1 {
+		selectJSON = "SELECT json_agg(row_to_json(t))"
+	}
+
 	return fmt.Sprintf(`
 WITH filtered_games AS (
     SELECT *
     FROM gamelist
     %s
     ORDER BY count2 DESC NULLS LAST, median DESC NULLS LAST
-    LIMIT 1
+    LIMIT %d
 )
-SELECT row_to_json(t)
+%s
 FROM (
     SELECT g.id,
            b.id AS brandid, 
@@ -212,5 +249,5 @@ FROM (
         LIMIT 1
     ) j ON TRUE
 ) t;
-`, keySQL)
+`, keySQL, limit, selectJSON)
 }

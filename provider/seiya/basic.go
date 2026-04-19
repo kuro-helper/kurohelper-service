@@ -7,8 +7,6 @@ import (
 	"sync"
 
 	"github.com/PuerkitoBio/goquery"
-
-	"kurohelperservice/store"
 )
 
 type (
@@ -46,7 +44,7 @@ var (
 
 func GetGuideURL(keyword string) string {
 	// 優先抓建檔的
-	correspondURL, ok := store.SeiyaCorrespond[keyword]
+	correspondURL, ok := SeiyaCorrespond[keyword]
 	if ok {
 		return correspondURL
 	}

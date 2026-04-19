@@ -1,15 +1,13 @@
-package store
+package kurohelperservice
 
 import (
+	"kurohelperservice/db"
 	"log/slog"
 	"os"
-
-	"kurohelperservice/db"
 )
 
 var (
-	ZhtwToJp        map[rune]rune
-	SeiyaCorrespond map[string]string
+	ZhtwToJp map[rune]rune
 )
 
 // init ZhtwToJp store
@@ -33,17 +31,12 @@ func InitZhtwToJp() {
 	}
 }
 
-// init SeiyaCorrespond store
-func InitSeiyaCorrespond() {
-	entries, err := db.GetAllSeiyaCorresponds(db.Dbs)
-	if err != nil {
-		slog.Error(err.Error())
-		os.Exit(1)
+func ZhTwToJp(search string) string {
+	runes := []rune(search)
+	for i, r := range runes {
+		if jp, ok := ZhtwToJp[r]; ok {
+			runes[i] = jp
+		}
 	}
-
-	// Translate
-	SeiyaCorrespond = make(map[string]string, len(entries))
-	for _, e := range entries {
-		SeiyaCorrespond[e.GameName] = e.SeiyaURL
-	}
+	return string(runes)
 }

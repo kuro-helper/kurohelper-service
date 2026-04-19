@@ -47,6 +47,12 @@ type GameList struct {
 	TimeBeforeUnderstandingFunMedian string `json:"time_before_understanding_fun_median"`
 }
 
+// use to auto complete
+type GameItem struct {
+	ID   int    `json:"id"`
+	Name string `json:"gamename"`
+}
+
 // Use kewords search game list data
 func SearchGameListByKeyword(keywords []string) ([]GameList, error) {
 	if len(keywords) == 0 {

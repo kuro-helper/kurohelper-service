@@ -40,7 +40,7 @@ func GetProxyDialer(addr, port string, auth *proxy.Auth) (proxy.Dialer, error) {
 	fullAddr := net.JoinHostPort(addr, port)
 
 	dialer, err := proxy.SOCKS5("tcp", fullAddr, auth, &net.Dialer{
-		Timeout: 10 * time.Second,
+		Timeout: 15 * time.Second,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", ErrCreateSOCKS5DialerFailed, err)

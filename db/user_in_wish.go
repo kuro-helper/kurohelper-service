@@ -27,7 +27,9 @@ func GetUserInWishByID(db *gorm.DB, userID string) ([]UserInWish, error) {
 func GetUserInWishByUserAndGameID(db *gorm.DB, userID string, gameErogsID int) (UserInWish, error) {
 	var userInWish UserInWish
 
-	err := db.First(&userInWish, "user_id = ? AND game_erogs_id = ?", userID, gameErogsID).Error
+	err := db.
+		Preload("GameErogs").
+		First(&userInWish, "user_id = ? AND game_erogs_id = ?", userID, gameErogsID).Error
 	if err != nil {
 		return userInWish, err
 	}

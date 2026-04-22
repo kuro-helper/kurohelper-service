@@ -28,7 +28,9 @@ func GetUserHasPlayedByID(db *gorm.DB, userID string) ([]UserHasPlayed, error) {
 func GetUserHasPlayedByUserAndGameID(db *gorm.DB, userID string, gameErogsID int) (UserHasPlayed, error) {
 	var userHasPlayed UserHasPlayed
 
-	err := db.First(&userHasPlayed, "user_id = ? AND game_erogs_id = ?", userID, gameErogsID).Error
+	err := db.
+		Preload("GameErogs").
+		First(&userHasPlayed, "user_id = ? AND game_erogs_id = ?", userID, gameErogsID).Error
 	if err != nil {
 		return userHasPlayed, err
 	}

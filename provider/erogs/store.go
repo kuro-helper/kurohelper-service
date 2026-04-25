@@ -11,50 +11,77 @@ import (
 )
 
 var (
-	GamesName     []string       = make([]string, 0)
-	InvertedIndex map[rune][]int = make(map[rune][]int)
+	GamesName          []string       = make([]string, 0)
+	GameInvertedIndex  map[rune][]int = make(map[rune][]int)
+	BrandsName         []string       = make([]string, 0)
+	BrandInvertedIndex map[rune][]int = make(map[rune][]int)
+	MusicsName         []string       = make([]string, 0)
+	MusicInvertedIndex map[rune][]int = make(map[rune][]int)
 )
 
-func InitErogsGameAutoComplete(pathRoute string) {
-	jsonFile, err := os.Open(pathRoute)
+func loadErogsAutocompleteFromJSON(path string) ([]string, map[rune][]int, error) {
+	jsonFile, err := os.Open(path)
 	if err != nil {
-		slog.Error(err.Error())
-		return
+		return nil, nil, err
 	}
-
 	defer jsonFile.Close()
 
-	byteValue, _ := io.ReadAll(jsonFile)
+	byteValue, err := io.ReadAll(jsonFile)
+	if err != nil {
+		return nil, nil, err
+	}
 
 	var entries []GameItem
-
-	err = json.Unmarshal(byteValue, &entries)
-	if err != nil {
-		slog.Error(err.Error())
-		return
+	if err := json.Unmarshal(byteValue, &entries); err != nil {
+		return nil, nil, err
 	}
 
-	GamesName = make([]string, 0, len(entries))
+	names := make([]string, 0, len(entries))
 	for _, e := range entries {
-		GamesName = append(GamesName, e.Name)
+		names = append(names, e.Name)
 	}
+	names = kurohelperservice.Distinct(names)
 
-	GamesName = kurohelperservice.Distinct(GamesName)
-
-	// 初始化倒排索引
-	InvertedIndex = make(map[rune][]int)
-
-	for i, name := range GamesName {
+	idx := make(map[rune][]int)
+	for i, name := range names {
 		runes := []rune(strings.ToLower(name))
-
-		// 避免重複存入索引
 		seen := make(map[rune]bool)
-
 		for _, char := range runes {
 			if !seen[char] {
-				InvertedIndex[char] = append(InvertedIndex[char], i)
+				idx[char] = append(idx[char], i)
 				seen[char] = true
 			}
 		}
 	}
+	return names, idx, nil
+}
+
+func InitErogsGameAutoComplete(pathRoute string) {
+	names, idx, err := loadErogsAutocompleteFromJSON(pathRoute)
+	if err != nil {
+		slog.Error(err.Error())
+		return
+	}
+	GamesName = names
+	GameInvertedIndex = idx
+}
+
+func InitErogsBrandAutoComplete(pathRoute string) {
+	names, idx, err := loadErogsAutocompleteFromJSON(pathRoute)
+	if err != nil {
+		slog.Error(err.Error())
+		return
+	}
+	BrandsName = names
+	BrandInvertedIndex = idx
+}
+
+func InitErogsMusicAutoComplete(pathRoute string) {
+	names, idx, err := loadErogsAutocompleteFromJSON(pathRoute)
+	if err != nil {
+		slog.Error(err.Error())
+		return
+	}
+	MusicsName = names
+	MusicInvertedIndex = idx
 }

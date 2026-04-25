@@ -50,7 +50,7 @@ type GameList struct {
 // use to auto complete
 type GameItem struct {
 	ID   int    `json:"id"`
-	Name string `json:"gamename"`
+	Name string `json:"name"`
 }
 
 // Use kewords search game list data

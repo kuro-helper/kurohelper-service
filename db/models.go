@@ -36,39 +36,6 @@ type WebAPIToken struct {
 	UpdatedAt time.Time `gorm:"autoUpdateTime"`
 }
 
-// user data
-type (
-	User struct {
-		ID        string    `gorm:"primaryKey" json:"id"`
-		Name      string    `json:"name"`
-		CreatedAt time.Time `gorm:"autoCreateTime" json:"createdAt"`
-		UpdatedAt time.Time `gorm:"autoUpdateTime" json:"updatedAt"`
-	}
-
-	// 2025-12-25 separate two states
-	UserHasPlayed struct {
-		UserID      string     `gorm:"primaryKey" json:"userId"`
-		GameErogsID int        `gorm:"primaryKey;autoIncrement:false" json:"gameErogsId"`
-		CompletedAt *time.Time `json:"completedAt,omitempty"`
-		CreatedAt   time.Time  `gorm:"autoCreateTime" json:"createdAt"`
-		// UpdatedAt   time.Time  `gorm:"autoUpdateTime" json:"updatedAt"`
-
-		User      *User      `gorm:"foreignKey:UserID;references:ID" json:"user,omitempty"`
-		GameErogs *GameErogs `gorm:"foreignKey:GameErogsID;references:ID" json:"gameErogs,omitempty"` // 單向 preload
-	}
-
-	// 2025-12-25 separate two states
-	UserInWish struct {
-		UserID      string    `gorm:"primaryKey" json:"userId"`
-		GameErogsID int       `gorm:"primaryKey;autoIncrement:false" json:"gameErogsId"`
-		CreatedAt   time.Time `gorm:"autoCreateTime" json:"createdAt"`
-		// UpdatedAt   time.Time `gorm:"autoUpdateTime" json:"updatedAt"`
-
-		User      *User      `gorm:"foreignKey:UserID;references:ID" json:"user,omitempty"`
-		GameErogs *GameErogs `gorm:"foreignKey:GameErogsID;references:ID" json:"gameErogs,omitempty"` // 單向 preload
-	}
-)
-
 type (
 	// game
 	GameErogs struct {
@@ -93,6 +60,8 @@ type (
 )
 
 // 公告資料表
+//
+// 暫時沒有使用
 type Announcement struct {
 	ID        int       `gorm:"primaryKey"`
 	Category  string    `gorm:"not null"`
@@ -101,4 +70,26 @@ type Announcement struct {
 	Image     *string   // 底部大圖
 	CreatedAt time.Time `gorm:"autoCreateTime"`
 	UpdatedAt time.Time `gorm:"autoUpdateTime"`
+}
+
+// 未來用
+type Game struct {
+	ID          int `gorm:"primaryKey"`
+	Name        string
+	PlayHours   float64
+	Brand       int // preload
+	Links       int // preload
+	Description string
+	ScoreAvg    float64
+	ScoreCount  int
+	ReleaseDate time.Time
+	CreatedAt   time.Time `gorm:"autoCreateTime"`
+	CreatedUser int
+	UpdatedAt   time.Time `gorm:"autoUpdateTime"`
+	UpdatedUser int
+	BangumiID   int
+	VNDBID      int
+	ErogsID     int
+	Alias       int // preload
+	Tag         int // preload
 }

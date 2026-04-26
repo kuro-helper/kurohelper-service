@@ -64,6 +64,7 @@ func GetUserGameByDiscordID(db *gorm.DB, discordID string) ([]UserGame, error) {
 		return tx.
 			Model(&UserGame{}).
 			Preload("GameErogs").
+			Preload("GameErogs.BrandErogs").
 			Where("user_id = ?", users[0].ID).
 			Order("COALESCE(finished_date, created_at) DESC").
 			Find(&hasPlayed).Error
@@ -119,6 +120,23 @@ func UpdateUserGameFinished(db *gorm.DB, userID int, gameErogsID int, completedA
 			Status:       1,
 			FinishedDate: completedAt,
 			UpdatedAt:    time.Now(),
+		})
+	if res.Error != nil {
+		return res.Error
+	}
+	if res.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
+	}
+	return nil
+}
+
+func UpdateUserGameStatus(db *gorm.DB, userID, gameErogsID, status int) error {
+	res := db.Model(&UserGame{}).
+		Where("user_id = ? AND game_erogs_id = ?", userID, gameErogsID).
+		Select("status", "updated_at").
+		Updates(UserGame{
+			Status:    status,
+			UpdatedAt: time.Now(),
 		})
 	if res.Error != nil {
 		return res.Error

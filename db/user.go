@@ -9,7 +9,7 @@ import (
 type User struct {
 	ID          int       `gorm:"primaryKey" json:"id"`
 	Name        string    `gorm:"not null;default:''" json:"name"` // 顯示用的名稱
-	DiscordID   string    `gorm:"not null;default:''" json:"discordId"`
+	DiscordID   *string   `gorm:"uniqueIndex" json:"discordId"`
 	Avatar      string    `gorm:"not null;default:''" json:"avatar"`
 	Description string    `gorm:"not null;default:''" json:"description"`
 	Role        int       `gorm:"not null;default:0" json:"role"`
@@ -21,8 +21,12 @@ type User struct {
 }
 
 func EnsureDiscordUser(db *gorm.DB, discordID, userName string) (*User, error) {
+	if discordID == "" {
+		return nil, ErrParameterNotFound
+	}
+
 	var user User
-	if err := db.Where("discord_id = ?", discordID).FirstOrCreate(&user, User{DiscordID: discordID, Name: userName}).Error; err != nil {
+	if err := db.Where("discord_id = ?", discordID).FirstOrCreate(&user, User{DiscordID: &discordID, Name: userName}).Error; err != nil {
 		return nil, err
 	}
 	return &user, nil

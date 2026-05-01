@@ -15,6 +15,7 @@ func Migration(db *gorm.DB) error {
 	db.AutoMigrate(&ZhtwToJp{})
 	db.AutoMigrate(&SeiyaCorrespond{})
 	db.AutoMigrate(&WebAPIToken{})
+	db.AutoMigrate(&RegisterCache{})
 	db.AutoMigrate(&DiscordAllowList{})
 	db.AutoMigrate(
 		&BrandErogs{},

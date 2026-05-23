@@ -65,6 +65,10 @@ func SearchCharacterListByKeyword(keywords []string) ([]CharacterList, error) {
 		return nil, err
 	}
 
+	if len(res) == 0 {
+		return nil, kurohelperservice.ErrSearchNoContent
+	}
+
 	return res, nil
 }
 

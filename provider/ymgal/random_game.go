@@ -2,6 +2,8 @@ package ymgal
 
 import (
 	"encoding/json"
+
+	"kurohelperservice"
 )
 
 type (
@@ -33,6 +35,10 @@ func GetRandomGame() ([]randomGameResp, error) {
 
 	if !result.Success {
 		return nil, ErrAPIFailed{Code: result.Code}
+	}
+
+	if len(result.Data) == 0 {
+		return nil, kurohelperservice.ErrSearchNoContent
 	}
 
 	return result.Data, nil

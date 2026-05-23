@@ -294,6 +294,10 @@ func GetCharacterListByFuzzy(keyword string) ([]CharacterSearchResponse, error) 
 		return nil, err
 	}
 
+	if len(resCharacters.Results) == 0 {
+		return nil, kurohelperservice.ErrSearchNoContent
+	}
+
 	return resCharacters.Results, nil
 }
 

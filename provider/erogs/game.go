@@ -84,6 +84,10 @@ func SearchGameListByKeyword(keywords []string) ([]GameList, error) {
 		return nil, err
 	}
 
+	if len(res) == 0 {
+		return nil, kurohelperservice.ErrSearchNoContent
+	}
+
 	return res, nil
 }
 
@@ -127,6 +131,10 @@ func SearchGameByIDs(ids []int) ([]Game, error) {
 	err = json.Unmarshal([]byte(jsonText), &res)
 	if err != nil {
 		return nil, err
+	}
+
+	if len(res) == 0 {
+		return nil, kurohelperservice.ErrSearchNoContent
 	}
 
 	return res, nil

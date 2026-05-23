@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"net/url"
 	"strings"
+
+	"kurohelperservice"
 )
 
 type (
@@ -55,6 +57,10 @@ func SearchGame(keyword string) (*SearchGameResp, error) {
 
 	if !result.Success {
 		return nil, ErrAPIFailed{Code: result.Code}
+	}
+
+	if len(result.Data.Result) == 0 {
+		return nil, kurohelperservice.ErrSearchNoContent
 	}
 
 	return &result.Data, nil

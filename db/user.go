@@ -7,14 +7,15 @@ import (
 )
 
 type User struct {
-	ID          int       `gorm:"primaryKey" json:"id"`
-	Name        string    `gorm:"not null;default:''" json:"name"` // 顯示用的名稱
-	DiscordID   *string   `gorm:"uniqueIndex" json:"discordId"`
-	Avatar      string    `gorm:"not null;default:''" json:"avatar"`
-	Description string    `gorm:"not null;default:''" json:"description"`
-	Role        int       `gorm:"not null;default:0" json:"role"`
-	CreatedAt   time.Time `gorm:"autoCreateTime" json:"createdAt"`
-	UpdatedAt   time.Time `gorm:"autoUpdateTime" json:"updatedAt"`
+	ID              int       `gorm:"primaryKey" json:"id"`
+	Name            string    `gorm:"not null;default:''" json:"name"` // 顯示用的名稱
+	DiscordID       *string   `gorm:"uniqueIndex" json:"discordId"`
+	Avatar          string    `gorm:"not null;default:''" json:"avatar"`
+	Description     string    `gorm:"not null;default:''" json:"description"`
+	PrivateGameData bool      `gorm:"not null;default:false" json:"privateGameData"` // 個人建檔隱私資料
+	Role            int       `gorm:"not null;default:0" json:"role"`
+	CreatedAt       time.Time `gorm:"autoCreateTime" json:"createdAt"`
+	UpdatedAt       time.Time `gorm:"autoUpdateTime" json:"updatedAt"`
 
 	Auth      *UserAuth  `gorm:"foreignKey:UserID" json:"-"`
 	UserGames []UserGame `gorm:"foreignKey:UserID" json:"userGames"`
@@ -81,4 +82,11 @@ func GetAllUsers(db *gorm.DB) ([]User, error) {
 	}
 
 	return user, nil
+}
+
+// 依據 discordID 更新 PrivateGameData 欄位
+func UpdateUserPrivateGameDataByDiscordID(db *gorm.DB, discordID string, privateGameData bool) error {
+	return db.Model(&User{}).
+		Where("discord_id = ?", discordID).
+		Update("private_game_data", privateGameData).Error
 }

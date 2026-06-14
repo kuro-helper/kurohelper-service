@@ -76,6 +76,23 @@ func GetUserGameByDiscordID(db *gorm.DB, discordID string) ([]UserGame, error) {
 	return hasPlayed, nil
 }
 
+func GetUserGameByUserID(db *gorm.DB, userID int) ([]UserGame, error) {
+	var userGames []UserGame
+
+	err := db.
+		Model(&UserGame{}).
+		Preload("GameErogs").
+		Preload("GameErogs.BrandErogs").
+		Where("user_id = ?", userID).
+		Order("COALESCE(finished_date, created_at) DESC").
+		Find(&userGames).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return userGames, nil
+}
+
 func GetUserGameByUserAndGameNameLike(db *gorm.DB, userID int, gameErogsName string) (UserGame, error) {
 	var result UserGame
 

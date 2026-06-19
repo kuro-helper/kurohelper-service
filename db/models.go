@@ -29,13 +29,6 @@ type DiscordAllowList struct {
 	UpdatedAt  time.Time `gorm:"autoUpdateTime"`
 }
 
-type WebAPIToken struct {
-	ID        string `gorm:"primaryKey"`
-	ExpiresAt *time.Time
-	CreatedAt time.Time `gorm:"autoCreateTime"`
-	UpdatedAt time.Time `gorm:"autoUpdateTime"`
-}
-
 type (
 	// game
 	GameErogs struct {

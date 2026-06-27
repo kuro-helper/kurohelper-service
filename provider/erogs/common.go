@@ -3,6 +3,7 @@ package erogs
 import (
 	"fmt"
 	"strings"
+	"unicode"
 
 	"kurohelperservice"
 )
@@ -30,7 +31,6 @@ func MakeDMMImageURL(dmm string) string {
 }
 
 func buildSearchStringSQL(search string) string {
-	search = strings.ReplaceAll(search, "'", "''")
 	search = strings.ReplaceAll(search, "%", "\\%")
 	search = strings.ReplaceAll(search, "_", "\\_")
 	if strings.TrimSpace(search) == "" {
@@ -40,6 +40,13 @@ func buildSearchStringSQL(search string) string {
 	result := "%"
 	searchRune := []rune(search)
 	for i, r := range searchRune {
+		if unicode.IsSpace(r) || r == '\'' {
+			if !strings.HasSuffix(result, "%") {
+				result += "%"
+			}
+			continue
+		}
+
 		if kurohelperservice.IsEnglish(r) && i < len(searchRune)-1 {
 			if kurohelperservice.IsEnglish(searchRune[i+1]) {
 				result += string(r)

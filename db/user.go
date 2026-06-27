@@ -1,6 +1,7 @@
 package db
 
 import (
+	"strconv"
 	"time"
 
 	"gorm.io/gorm"
@@ -8,7 +9,7 @@ import (
 
 type User struct {
 	ID              int       `gorm:"primaryKey" json:"id"`
-	Name            string    `gorm:"not null;default:''" json:"name"` // 顯示用的名稱
+	Name            string    `gorm:"not null;default:''" json:"name"` // 顯示用的名稱(暱稱)
 	DiscordID       *string   `gorm:"uniqueIndex" json:"discordId"`
 	Avatar          string    `gorm:"not null;default:''" json:"avatar"`
 	Description     string    `gorm:"not null;default:''" json:"description"`
@@ -89,4 +90,20 @@ func UpdateUserPrivateGameDataByDiscordID(db *gorm.DB, discordID string, private
 	return db.Model(&User{}).
 		Where("discord_id = ?", discordID).
 		Update("private_game_data", privateGameData).Error
+}
+
+// 更新使用者個人資料（名稱、說明、大頭照 URL）
+func UpdateUser(db *gorm.DB, userID int, name, description, avatar string) (User, error) {
+	var user User
+	err := db.Model(&User{}).
+		Where("id = ?", userID).
+		Updates(map[string]any{
+			"name":        name,
+			"description": description,
+			"avatar":      avatar,
+		}).Error
+	if err != nil {
+		return user, err
+	}
+	return GetUser(db, strconv.Itoa(userID))
 }

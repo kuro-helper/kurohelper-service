@@ -102,15 +102,16 @@ func UpdateUserPrivateGameDataByDiscordID(db *gorm.DB, discordID string, private
 		Update("private_game_data", privateGameData).Error
 }
 
-// 更新使用者個人資料（名稱、說明、大頭照 URL）
-func UpdateUser(db *gorm.DB, userID int, name, description, avatar string) (User, error) {
+// 更新使用者個人資料（名稱、說明、大頭照 URL、建檔隱私）
+func UpdateUser(db *gorm.DB, userID int, name, description, avatar string, privateGameData bool) (User, error) {
 	var user User
 	err := db.Model(&User{}).
 		Where("id = ?", userID).
 		Updates(map[string]any{
-			"name":        name,
-			"description": description,
-			"avatar":      avatar,
+			"name":              name,
+			"description":       description,
+			"avatar":            avatar,
+			"private_game_data": privateGameData,
 		}).Error
 	if err != nil {
 		return user, err

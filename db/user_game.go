@@ -93,6 +93,22 @@ func GetUserGameByUserID(db *gorm.DB, userID int) ([]UserGame, error) {
 	return userGames, nil
 }
 
+func GetUserGameByUserAndGameErogsID(db *gorm.DB, userID, gameErogsID int) (UserGame, error) {
+	var result UserGame
+
+	err := db.
+		Model(&UserGame{}).
+		Preload("GameErogs").
+		Preload("GameErogs.BrandErogs").
+		Where("user_id = ? AND game_erogs_id = ?", userID, gameErogsID).
+		First(&result).Error
+	if err != nil {
+		return result, err
+	}
+
+	return result, nil
+}
+
 func GetUserGameByUserAndGameNameLike(db *gorm.DB, userID int, gameErogsName string) (UserGame, error) {
 	var result UserGame
 
@@ -171,6 +187,32 @@ func UpdateUserGameWishListMark(db *gorm.DB, userID, gameErogsID int, wishListMa
 		Updates(UserGame{
 			WishListMark: wishListMark,
 			UpdatedAt:    time.Now(),
+		})
+	if res.Error != nil {
+		return res.Error
+	}
+	if res.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
+	}
+	return nil
+}
+
+func UpdateUserGame(
+	db *gorm.DB,
+	userID, gameErogsID, status int,
+	wishListMark, blackListMark bool,
+	startDate, finishedDate *time.Time,
+) error {
+	res := db.Model(&UserGame{}).
+		Where("user_id = ? AND game_erogs_id = ?", userID, gameErogsID).
+		Select("status", "wish_list_mark", "black_list_mark", "start_date", "finished_date", "updated_at").
+		Updates(UserGame{
+			Status:        status,
+			WishListMark:  wishListMark,
+			BlackListMark: blackListMark,
+			StartDate:     startDate,
+			FinishedDate:  finishedDate,
+			UpdatedAt:     time.Now(),
 		})
 	if res.Error != nil {
 		return res.Error

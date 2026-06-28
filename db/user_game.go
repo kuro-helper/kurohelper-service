@@ -9,6 +9,18 @@ import (
 	"gorm.io/gorm"
 )
 
+const (
+	UserGameStatusNone     = 0 // 沒有狀態
+	UserGameStatusFinished = 1 // 遊玩完畢
+	UserGameStatusPlaying  = 2 // 遊玩中
+	UserGameStatusStalled  = 3 // 暫停遊玩
+	UserGameStatusDropped  = 4 // 放棄遊玩
+)
+
+func ValidUserGameStatus(status int) bool {
+	return status >= UserGameStatusNone && status <= UserGameStatusDropped
+}
+
 // User的遊戲資料
 type UserGame struct {
 	UserID      int `gorm:"primaryKey;autoIncrement:false" json:"userId"`
@@ -36,7 +48,7 @@ func GetUserGameFinishedByID(db *gorm.DB, userID int) ([]UserGame, error) {
 		Preload("GameErogs").
 		// Preload("GameErogs.BrandErogs").
 		Where("user_id = ?", userID).
-		Where("status = ?", 1).
+		Where("status = ?", UserGameStatusFinished).
 		Order("COALESCE(finished_date, created_at) DESC").
 		Find(&hasPlayed).Error
 	if err != nil {
@@ -150,7 +162,7 @@ func UpdateUserGameFinished(db *gorm.DB, userID int, gameErogsID int, completedA
 		Where("user_id = ? AND game_erogs_id = ?", userID, gameErogsID).
 		Select("status", "finished_date", "updated_at").
 		Updates(UserGame{
-			Status:       1,
+			Status:       UserGameStatusFinished,
 			FinishedDate: completedAt,
 			UpdatedAt:    time.Now(),
 		})

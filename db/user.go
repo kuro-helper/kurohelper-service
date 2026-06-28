@@ -7,6 +7,16 @@ import (
 	"gorm.io/gorm"
 )
 
+const (
+	UserRoleUser      = 0  // 一般使用者
+	UserRoleDeveloper = 5  // 開發者
+	UserRoleOwner     = 10 // 站主
+)
+
+func ValidUserRole(role int) bool {
+	return role >= UserRoleUser && role <= UserRoleOwner
+}
+
 type User struct {
 	ID              int       `gorm:"primaryKey" json:"id"`
 	Name            string    `gorm:"not null;default:''" json:"name"` // 顯示用的名稱(暱稱)

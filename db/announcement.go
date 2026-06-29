@@ -6,6 +6,19 @@ import (
 	"gorm.io/gorm"
 )
 
+// 公告資料表
+//
+// 暫時沒有使用
+type Announcement struct {
+	ID        int       `gorm:"primaryKey"`
+	Category  string    `gorm:"not null"`
+	Content   string    `gorm:"not null"` // markdown內文
+	Thumbnail *string   // 側邊小圖
+	Image     *string   // 底部大圖
+	CreatedAt time.Time `gorm:"autoCreateTime"`
+	UpdatedAt time.Time `gorm:"autoUpdateTime"`
+}
+
 func CreateAnnouncement(db *gorm.DB, category string, content string, thumbnail *string, image *string) error {
 	newUpdate := Announcement{
 		Category:  category,

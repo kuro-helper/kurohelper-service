@@ -26,6 +26,7 @@ func Migration(db *gorm.DB) error {
 		&UserAuth{},
 		&UserGame{},
 	)
+	db.AutoMigrate(&AppConfig{})
 
 	// db.AutoMigrate(&Announcement{})
 

@@ -6,6 +6,15 @@ import (
 	"gorm.io/gorm"
 )
 
+type BrandErogs struct {
+	ID        int       `gorm:"primaryKey;autoIncrement:false" json:"id"`
+	Name      string    `gorm:"unique" json:"name"`
+	Disband   bool      `json:"disband"`
+	GameCount int       `gorm:"not null;default:0" json:"gameCount"`
+	CreatedAt time.Time `gorm:"autoCreateTime" json:"createdAt"`
+	UpdatedAt time.Time `gorm:"autoUpdateTime" json:"updatedAt"`
+}
+
 // 確保指定的BrandErogs存在，不存在就直接建立
 func EnsureBrandErogs(db *gorm.DB, brandID int, brandName string, disband bool, gameCount int) (*BrandErogs, error) {
 	var brand BrandErogs

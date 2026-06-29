@@ -27,6 +27,15 @@ var (
 	rateLimitRecord rateLimitStruct
 )
 
+// ExecuteSQL 將任意 SQL 字串送至 erogs 查詢端點，回傳第一個結果欄位的 JSON 文字。
+func ExecuteSQL(sql string) (string, error) {
+	sql = strings.TrimSpace(sql)
+	if sql == "" {
+		return "", kurohelperservice.ErrSearchNoContent
+	}
+	return sendPostRequest(sql)
+}
+
 // 確保設定檔初始化後才初始化速率鎖的變數
 func InitRateLimit(resetTime time.Duration) {
 	resetTime = time.Duration(resetTime) * time.Second

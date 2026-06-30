@@ -157,6 +157,37 @@ func EnsureUserGame(db *gorm.DB, userID int, gameErogsID int) error {
 	return nil
 }
 
+func CreateUserGame(
+	db *gorm.DB,
+	userID, gameErogsID, status int,
+	wishListMark, blackListMark bool,
+	startDate, finishedDate *time.Time,
+) error {
+	if _, err := GetGameErogsByID(db, gameErogsID); err != nil {
+		return err
+	}
+
+	userGame := UserGame{
+		UserID:        userID,
+		GameErogsID:   gameErogsID,
+		Status:        status,
+		WishListMark:  wishListMark,
+		BlackListMark: blackListMark,
+		StartDate:     startDate,
+		FinishedDate:  finishedDate,
+	}
+
+	if err := db.Create(&userGame).Error; err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
+			return ErrUniqueViolation
+		}
+		return err
+	}
+
+	return nil
+}
+
 func UpdateUserGameFinished(db *gorm.DB, userID int, gameErogsID int, completedAt *time.Time) error {
 	res := db.Model(&UserGame{}).
 		Where("user_id = ? AND game_erogs_id = ?", userID, gameErogsID).

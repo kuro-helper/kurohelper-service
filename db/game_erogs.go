@@ -47,3 +47,9 @@ func GetAllGameErogs(db *gorm.DB) ([]GameErogs, error) {
 	err := db.Preload("BrandErogs").Find(&games).Error
 	return games, err
 }
+
+func GetGameErogsByID(db *gorm.DB, id int) (GameErogs, error) {
+	var game GameErogs
+	err := db.First(&game, id).Error
+	return game, err
+}

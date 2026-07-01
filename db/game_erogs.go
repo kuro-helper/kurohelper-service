@@ -9,7 +9,7 @@ import (
 type GameErogs struct {
 	ID           int       `gorm:"primaryKey;autoIncrement:false" json:"id"`
 	BrandErogsID int       `json:"brandErogsId"`
-	Name         string    `gorm:"unique" json:"name"` // 遊戲名稱(批評空間)
+	Name         string    `gorm:"not null" json:"name"` // 遊戲名稱(批評空間)
 	Image        string    `gorm:"not null;default:''" json:"image"`
 	CreatedAt    time.Time `gorm:"autoCreateTime" json:"createdAt"`
 	UpdatedAt    time.Time `gorm:"autoUpdateTime" json:"updatedAt"`

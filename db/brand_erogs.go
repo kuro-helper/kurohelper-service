@@ -8,7 +8,7 @@ import (
 
 type BrandErogs struct {
 	ID        int       `gorm:"primaryKey;autoIncrement:false" json:"id"`
-	Name      string    `gorm:"unique" json:"name"`
+	Name      string    `gorm:"not null" json:"name"`
 	Disband   bool      `json:"disband"`
 	GameCount int       `gorm:"not null;default:0" json:"gameCount"`
 	CreatedAt time.Time `gorm:"autoCreateTime" json:"createdAt"`
@@ -18,7 +18,9 @@ type BrandErogs struct {
 // 確保指定的BrandErogs存在，不存在就直接建立
 func EnsureBrandErogs(db *gorm.DB, brandID int, brandName string, disband bool, gameCount int) (*BrandErogs, error) {
 	var brand BrandErogs
-	if err := db.Where("id = ?", brandID).FirstOrCreate(&brand, BrandErogs{ID: brandID, Name: brandName, Disband: disband, GameCount: gameCount}).Error; err != nil {
+	if err := db.Where(BrandErogs{ID: brandID}).
+		Attrs(BrandErogs{Name: brandName, Disband: disband, GameCount: gameCount}).
+		FirstOrCreate(&brand).Error; err != nil {
 		return nil, err
 	}
 	return &brand, nil

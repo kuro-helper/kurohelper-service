@@ -9,8 +9,9 @@ import (
 type GameErogs struct {
 	ID           int       `gorm:"primaryKey;autoIncrement:false" json:"id"`
 	BrandErogsID int       `json:"brandErogsId"`
-	Name         string    `gorm:"unique" json:"name"` // 遊戲名稱(批評空間)
+	Name         string    `gorm:"not null" json:"name"` // 遊戲名稱(批評空間)
 	Image        string    `gorm:"not null;default:''" json:"image"`
+	Category     string    `gorm:"not null;default:''" json:"category"`
 	CreatedAt    time.Time `gorm:"autoCreateTime" json:"createdAt"`
 	UpdatedAt    time.Time `gorm:"autoUpdateTime" json:"updatedAt"`
 
@@ -18,10 +19,10 @@ type GameErogs struct {
 }
 
 // 確保指定的GameErogs存在，不存在就直接建立
-func EnsureGameErogs(db *gorm.DB, gameID int, gameName string, gameImage string, brandID int) (*GameErogs, error) {
+func EnsureGameErogs(db *gorm.DB, gameID int, gameName string, gameImage string, brandID int, category string) (*GameErogs, error) {
 	var game GameErogs
 	if err := db.Where(GameErogs{ID: gameID}).
-		Attrs(GameErogs{Name: gameName, BrandErogsID: brandID, Image: gameImage}).
+		Attrs(GameErogs{Name: gameName, BrandErogsID: brandID, Image: gameImage, Category: category}).
 		FirstOrCreate(&game).Error; err != nil {
 		return nil, err
 	}
@@ -38,7 +39,7 @@ func UpdateGameErogsImageByID(db *gorm.DB, id int, image string) error {
 func UpdateGameErogs(db *gorm.DB, id int, game *GameErogs) error {
 	game.UpdatedAt = time.Now()
 	return db.Model(&GameErogs{}).Where("id = ?", id).
-		Select("Name", "BrandErogsID", "Image", "UpdatedAt").
+		Select("Name", "BrandErogsID", "Image", "Category", "UpdatedAt").
 		Updates(game).Error
 }
 

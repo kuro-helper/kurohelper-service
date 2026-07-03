@@ -10,14 +10,24 @@ import (
 )
 
 // User的遊戲資料
+type UserGameStatus int
+
+const (
+	UserGameStatusNone UserGameStatus = iota
+	UserGameStatusFinished
+	UserGameStatusPlaying
+	UserGameStatusStalled
+	UserGameStatusDropped
+)
+
 type UserGame struct {
 	UserID      int `gorm:"primaryKey;autoIncrement:false" json:"userId"`
 	GameErogsID int `gorm:"primaryKey;autoIncrement:false" json:"gameErogsId"`
 	// GameID string `gorm:"primaryKey" json:"gameId"`
 
-	Status        int  `gorm:"not null;default:0" json:"status"`
-	WishListMark  bool `gorm:"not null;default:false" json:"wishListMark"`
-	BlackListMark bool `gorm:"not null;default:false" json:"blackListMark"`
+	Status        UserGameStatus `gorm:"not null;default:0" json:"status"`
+	WishListMark  bool           `gorm:"not null;default:false" json:"wishListMark"`
+	BlackListMark bool           `gorm:"not null;default:false" json:"blackListMark"`
 
 	StartDate    *time.Time `json:"startDate,omitempty"`
 	FinishedDate *time.Time `json:"finishedDate,omitempty"`
@@ -134,7 +144,7 @@ func UpdateUserGameFinished(db *gorm.DB, userID int, gameErogsID int, completedA
 		Where("user_id = ? AND game_erogs_id = ?", userID, gameErogsID).
 		Select("status", "finished_date", "updated_at").
 		Updates(UserGame{
-			Status:       1,
+			Status:       UserGameStatusFinished,
 			FinishedDate: completedAt,
 			UpdatedAt:    time.Now(),
 		})
@@ -147,7 +157,7 @@ func UpdateUserGameFinished(db *gorm.DB, userID int, gameErogsID int, completedA
 	return nil
 }
 
-func UpdateUserGameStatus(db *gorm.DB, userID, gameErogsID, status int) error {
+func UpdateUserGameStatus(db *gorm.DB, userID, gameErogsID int, status UserGameStatus) error {
 	res := db.Model(&UserGame{}).
 		Where("user_id = ? AND game_erogs_id = ?", userID, gameErogsID).
 		Select("status", "updated_at").

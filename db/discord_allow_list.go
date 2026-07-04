@@ -1,8 +1,18 @@
 package db
 
 import (
+	"time"
+
 	"gorm.io/gorm"
 )
+
+type DiscordAllowList struct {
+	ID         string    `gorm:"primaryKey"`
+	Kind       string    `gorm:"not null"`
+	Permission int       `gorm:"not null"`
+	CreatedAt  time.Time `gorm:"autoCreateTime"`
+	UpdatedAt  time.Time `gorm:"autoUpdateTime"`
+}
 
 // 查詢白名單
 //

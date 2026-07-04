@@ -5,7 +5,18 @@ import (
 	"time"
 
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
+
+const (
+	UserRoleUser      = 0  // 一般使用者
+	UserRoleDeveloper = 5  // 開發者
+	UserRoleOwner     = 10 // 站主
+)
+
+func ValidUserRole(role int) bool {
+	return role >= UserRoleUser && role <= UserRoleOwner
+}
 
 type User struct {
 	ID              int       `gorm:"primaryKey" json:"id"`
@@ -22,16 +33,18 @@ type User struct {
 	UserGames []UserGame `gorm:"foreignKey:UserID" json:"userGames"`
 }
 
-func EnsureDiscordUser(db *gorm.DB, discordID, userName string) (*User, error) {
+func EnsureDiscordUser(db *gorm.DB, discordID, userName string) error {
 	if discordID == "" {
-		return nil, ErrParameterNotFound
+		return ErrParameterNotFound
 	}
 
 	var user User
-	if err := db.Where("discord_id = ?", discordID).FirstOrCreate(&user, User{DiscordID: &discordID, Name: userName}).Error; err != nil {
-		return nil, err
-	}
-	return &user, nil
+
+	user = User{DiscordID: &discordID, Name: userName}
+	return db.Clauses(clause.OnConflict{
+		Columns:   []clause.Column{{Name: "discord_id"}},
+		DoNothing: true,
+	}).Create(&user).Error
 }
 
 // 依據 userID 取得單一使用者資料
@@ -92,15 +105,16 @@ func UpdateUserPrivateGameDataByDiscordID(db *gorm.DB, discordID string, private
 		Update("private_game_data", privateGameData).Error
 }
 
-// 更新使用者個人資料（名稱、說明、大頭照 URL）
-func UpdateUser(db *gorm.DB, userID int, name, description, avatar string) (User, error) {
+// 更新使用者個人資料（名稱、說明、大頭照 URL、建檔隱私）
+func UpdateUser(db *gorm.DB, userID int, name, description, avatar string, privateGameData bool) (User, error) {
 	var user User
 	err := db.Model(&User{}).
 		Where("id = ?", userID).
 		Updates(map[string]any{
-			"name":        name,
-			"description": description,
-			"avatar":      avatar,
+			"name":              name,
+			"description":       description,
+			"avatar":            avatar,
+			"private_game_data": privateGameData,
 		}).Error
 	if err != nil {
 		return user, err

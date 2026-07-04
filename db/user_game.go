@@ -9,6 +9,18 @@ import (
 	"gorm.io/gorm"
 )
 
+const (
+	UserGameStatusNone     = 0 // 沒有狀態
+	UserGameStatusFinished = 1 // 遊玩完畢
+	UserGameStatusPlaying  = 2 // 遊玩中
+	UserGameStatusStalled  = 3 // 暫停遊玩
+	UserGameStatusDropped  = 4 // 放棄遊玩
+)
+
+func ValidUserGameStatus(status int) bool {
+	return status >= UserGameStatusNone && status <= UserGameStatusDropped
+}
+
 // User的遊戲資料
 type UserGameStatus int
 
@@ -46,7 +58,7 @@ func GetUserGameFinishedByID(db *gorm.DB, userID int) ([]UserGame, error) {
 		Preload("GameErogs").
 		// Preload("GameErogs.BrandErogs").
 		Where("user_id = ?", userID).
-		Where("status = ?", 1).
+		Where("status = ?", UserGameStatusFinished).
 		Order("COALESCE(finished_date, created_at) DESC").
 		Find(&hasPlayed).Error
 	if err != nil {
@@ -103,6 +115,22 @@ func GetUserGameByUserID(db *gorm.DB, userID int) ([]UserGame, error) {
 	return userGames, nil
 }
 
+func GetUserGameByUserAndGameErogsID(db *gorm.DB, userID, gameErogsID int) (UserGame, error) {
+	var result UserGame
+
+	err := db.
+		Model(&UserGame{}).
+		Preload("GameErogs").
+		Preload("GameErogs.BrandErogs").
+		Where("user_id = ? AND game_erogs_id = ?", userID, gameErogsID).
+		First(&result).Error
+	if err != nil {
+		return result, err
+	}
+
+	return result, nil
+}
+
 func GetUserGameByUserAndGameNameLike(db *gorm.DB, userID int, gameErogsName string) (UserGame, error) {
 	var result UserGame
 
@@ -129,6 +157,37 @@ func EnsureUserGame(db *gorm.DB, userID int, gameErogsID int) error {
 	}
 
 	if err := db.Where("user_id = ? AND game_erogs_id = ?", userID, gameErogsID).FirstOrCreate(&userGame).Error; err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
+			return ErrUniqueViolation
+		}
+		return err
+	}
+
+	return nil
+}
+
+func CreateUserGame(
+	db *gorm.DB,
+	userID, gameErogsID, status int,
+	wishListMark, blackListMark bool,
+	startDate, finishedDate *time.Time,
+) error {
+	if _, err := GetGameErogsByID(db, gameErogsID); err != nil {
+		return err
+	}
+
+	userGame := UserGame{
+		UserID:        userID,
+		GameErogsID:   gameErogsID,
+		Status:        status,
+		WishListMark:  wishListMark,
+		BlackListMark: blackListMark,
+		StartDate:     startDate,
+		FinishedDate:  finishedDate,
+	}
+
+	if err := db.Create(&userGame).Error; err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
 			return ErrUniqueViolation
@@ -181,6 +240,32 @@ func UpdateUserGameWishListMark(db *gorm.DB, userID, gameErogsID int, wishListMa
 		Updates(UserGame{
 			WishListMark: wishListMark,
 			UpdatedAt:    time.Now(),
+		})
+	if res.Error != nil {
+		return res.Error
+	}
+	if res.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
+	}
+	return nil
+}
+
+func UpdateUserGame(
+	db *gorm.DB,
+	userID, gameErogsID, status int,
+	wishListMark, blackListMark bool,
+	startDate, finishedDate *time.Time,
+) error {
+	res := db.Model(&UserGame{}).
+		Where("user_id = ? AND game_erogs_id = ?", userID, gameErogsID).
+		Select("status", "wish_list_mark", "black_list_mark", "start_date", "finished_date", "updated_at").
+		Updates(UserGame{
+			Status:        status,
+			WishListMark:  wishListMark,
+			BlackListMark: blackListMark,
+			StartDate:     startDate,
+			FinishedDate:  finishedDate,
+			UpdatedAt:     time.Now(),
 		})
 	if res.Error != nil {
 		return res.Error

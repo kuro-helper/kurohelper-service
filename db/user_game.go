@@ -9,18 +9,6 @@ import (
 	"gorm.io/gorm"
 )
 
-const (
-	UserGameStatusNone     = 0 // 沒有狀態
-	UserGameStatusFinished = 1 // 遊玩完畢
-	UserGameStatusPlaying  = 2 // 遊玩中
-	UserGameStatusStalled  = 3 // 暫停遊玩
-	UserGameStatusDropped  = 4 // 放棄遊玩
-)
-
-func ValidUserGameStatus(status int) bool {
-	return status >= UserGameStatusNone && status <= UserGameStatusDropped
-}
-
 // User的遊戲資料
 type UserGameStatus int
 
@@ -31,6 +19,10 @@ const (
 	UserGameStatusStalled
 	UserGameStatusDropped
 )
+
+func ValidUserGameStatus(status UserGameStatus) bool {
+	return status >= UserGameStatusNone && status <= UserGameStatusDropped
+}
 
 type UserGame struct {
 	UserID      int `gorm:"primaryKey;autoIncrement:false" json:"userId"`
@@ -169,7 +161,8 @@ func EnsureUserGame(db *gorm.DB, userID int, gameErogsID int) error {
 
 func CreateUserGame(
 	db *gorm.DB,
-	userID, gameErogsID, status int,
+	userID, gameErogsID int,
+	status UserGameStatus,
 	wishListMark, blackListMark bool,
 	startDate, finishedDate *time.Time,
 ) error {
@@ -252,7 +245,8 @@ func UpdateUserGameWishListMark(db *gorm.DB, userID, gameErogsID int, wishListMa
 
 func UpdateUserGame(
 	db *gorm.DB,
-	userID, gameErogsID, status int,
+	userID, gameErogsID int,
+	status UserGameStatus,
 	wishListMark, blackListMark bool,
 	startDate, finishedDate *time.Time,
 ) error {

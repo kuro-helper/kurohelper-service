@@ -9,27 +9,29 @@ import (
 	"gorm.io/gorm"
 )
 
+// User的遊戲資料
+type UserGameStatus int
+
 const (
-	UserGameStatusNone     = 0 // 沒有狀態
-	UserGameStatusFinished = 1 // 遊玩完畢
-	UserGameStatusPlaying  = 2 // 遊玩中
-	UserGameStatusStalled  = 3 // 暫停遊玩
-	UserGameStatusDropped  = 4 // 放棄遊玩
+	UserGameStatusNone UserGameStatus = iota
+	UserGameStatusFinished
+	UserGameStatusPlaying
+	UserGameStatusStalled
+	UserGameStatusDropped
 )
 
-func ValidUserGameStatus(status int) bool {
+func ValidUserGameStatus(status UserGameStatus) bool {
 	return status >= UserGameStatusNone && status <= UserGameStatusDropped
 }
 
-// User的遊戲資料
 type UserGame struct {
 	UserID      int `gorm:"primaryKey;autoIncrement:false" json:"userId"`
 	GameErogsID int `gorm:"primaryKey;autoIncrement:false" json:"gameErogsId"`
 	// GameID string `gorm:"primaryKey" json:"gameId"`
 
-	Status        int  `gorm:"not null;default:0" json:"status"`
-	WishListMark  bool `gorm:"not null;default:false" json:"wishListMark"`
-	BlackListMark bool `gorm:"not null;default:false" json:"blackListMark"`
+	Status        UserGameStatus `gorm:"not null;default:0" json:"status"`
+	WishListMark  bool           `gorm:"not null;default:false" json:"wishListMark"`
+	BlackListMark bool           `gorm:"not null;default:false" json:"blackListMark"`
 
 	StartDate    *time.Time `json:"startDate,omitempty"`
 	FinishedDate *time.Time `json:"finishedDate,omitempty"`
@@ -159,7 +161,8 @@ func EnsureUserGame(db *gorm.DB, userID int, gameErogsID int) error {
 
 func CreateUserGame(
 	db *gorm.DB,
-	userID, gameErogsID, status int,
+	userID, gameErogsID int,
+	status UserGameStatus,
 	wishListMark, blackListMark bool,
 	startDate, finishedDate *time.Time,
 ) error {
@@ -206,7 +209,7 @@ func UpdateUserGameFinished(db *gorm.DB, userID int, gameErogsID int, completedA
 	return nil
 }
 
-func UpdateUserGameStatus(db *gorm.DB, userID, gameErogsID, status int) error {
+func UpdateUserGameStatus(db *gorm.DB, userID, gameErogsID int, status UserGameStatus) error {
 	res := db.Model(&UserGame{}).
 		Where("user_id = ? AND game_erogs_id = ?", userID, gameErogsID).
 		Select("status", "updated_at").
@@ -242,7 +245,8 @@ func UpdateUserGameWishListMark(db *gorm.DB, userID, gameErogsID int, wishListMa
 
 func UpdateUserGame(
 	db *gorm.DB,
-	userID, gameErogsID, status int,
+	userID, gameErogsID int,
+	status UserGameStatus,
 	wishListMark, blackListMark bool,
 	startDate, finishedDate *time.Time,
 ) error {

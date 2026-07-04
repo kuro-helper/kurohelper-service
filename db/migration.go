@@ -13,24 +13,29 @@ func Migration(db *gorm.DB) error {
 		return errors.New("DB not initialized")
 	}
 
-	db.AutoMigrate(&ZhtwToJp{})
-	db.AutoMigrate(&SeiyaCorrespond{})
-	db.AutoMigrate(&WebAPIToken{})
-	db.AutoMigrate(&RegisterCache{})
-	db.AutoMigrate(&DiscordAllowList{})
-	db.AutoMigrate(
+	if err := db.AutoMigrate(
+		&ZhtwToJp{},
+		&SeiyaCorrespond{},
+		&WebAPIToken{},
+		&RegisterCache{},
+		&DiscordAllowList{},
 		&BrandErogs{},
 		&GameErogs{},
-	)
+	); err != nil {
+		return err
+	}
 	if err := dropErogsNameUniqueConstraints(db); err != nil {
 		return err
 	}
-	db.AutoMigrate(
+	if err := db.AutoMigrate(
 		&User{},
 		&UserAuth{},
 		&UserGame{},
-	)
-	db.AutoMigrate(&AppConfig{})
+		&UserCheckIn{},
+		&AppConfig{},
+	); err != nil {
+		return err
+	}
 
 	// db.AutoMigrate(&Announcement{})
 

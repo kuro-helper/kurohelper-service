@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 const (
@@ -32,16 +33,18 @@ type User struct {
 	UserGames []UserGame `gorm:"foreignKey:UserID" json:"userGames"`
 }
 
-func EnsureDiscordUser(db *gorm.DB, discordID, userName string) (*User, error) {
+func EnsureDiscordUser(db *gorm.DB, discordID, userName string) error {
 	if discordID == "" {
-		return nil, ErrParameterNotFound
+		return ErrParameterNotFound
 	}
 
 	var user User
-	if err := db.Where("discord_id = ?", discordID).FirstOrCreate(&user, User{DiscordID: &discordID, Name: userName}).Error; err != nil {
-		return nil, err
-	}
-	return &user, nil
+
+	user = User{DiscordID: &discordID, Name: userName}
+	return db.Clauses(clause.OnConflict{
+		Columns:   []clause.Column{{Name: "discord_id"}},
+		DoNothing: true,
+	}).Create(&user).Error
 }
 
 // 依據 userID 取得單一使用者資料

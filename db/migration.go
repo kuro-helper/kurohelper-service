@@ -33,11 +33,12 @@ func Migration(db *gorm.DB) error {
 		&UserGame{},
 		&UserCheckIn{},
 		&AppConfig{},
+		&Announcement{},
 	); err != nil {
 		return err
 	}
 
-	// db.AutoMigrate(&Announcement{})
+	// db.AutoMigrate(&History{})
 
 	return nil
 }

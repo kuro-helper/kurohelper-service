@@ -10,6 +10,7 @@ import (
 )
 
 type Config struct {
+	DBHost     string
 	DBOwner    string
 	DBPassword string
 	DBName     string
@@ -21,7 +22,11 @@ var Dbs *gorm.DB
 
 // 初始化資料庫連線
 func InitDsn(config Config) error {
-	dsn := fmt.Sprintf("user=%s password=%s dbname=%s port=%s sslmode=disable",
+	if config.DBHost == "" {
+		config.DBHost = "localhost"
+	}
+	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable",
+		config.DBHost,
 		config.DBOwner,
 		config.DBPassword,
 		config.DBName,

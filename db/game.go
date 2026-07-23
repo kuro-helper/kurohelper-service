@@ -18,7 +18,7 @@ type Game struct {
 	UpdatedAt   time.Time `gorm:"autoUpdateTime"`
 	UpdatedUser int
 	BangumiID   int
-	VNDBID      int
+	VNDBID      int `gorm:"column:vndb_id"`
 	ErogsID     int
 	Alias       int // preload
 	Tag         int // preload

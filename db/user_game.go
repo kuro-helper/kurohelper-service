@@ -310,3 +310,14 @@ func DeleteUserGame(db *gorm.DB, discordID string, gameErogsID int) error {
 			Delete(&UserGame{}).Error
 	})
 }
+
+func DeleteUserGameByUserAndGameErogsID(db *gorm.DB, userID, gameErogsID int) error {
+	res := db.Where("user_id = ? AND game_erogs_id = ?", userID, gameErogsID).Delete(&UserGame{})
+	if res.Error != nil {
+		return res.Error
+	}
+	if res.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
+	}
+	return nil
+}

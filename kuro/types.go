@@ -72,17 +72,26 @@ type GenerationMetrics struct {
 }
 
 type Memory struct {
-	ID           string              `json:"id"`
-	SubjectName  string              `json:"subject_name"`
-	Key          string              `json:"key"`
-	Value        string              `json:"value"`
-	Category     string              `json:"category"`
-	Status       string              `json:"status"`
-	UpdatedAt    string              `json:"updated_at"`
-	PurgeAfter   string              `json:"purge_after,omitempty"`
-	Scope        string              `json:"scope,omitempty"`
-	ScopeID      string              `json:"scope_id,omitempty"`
-	Participants []MemoryParticipant `json:"participants,omitempty"`
+	ID              string              `json:"id"`
+	SubjectID       string              `json:"subject_id,omitempty"`
+	SubjectName     string              `json:"subject_name"`
+	Key             string              `json:"key"`
+	Value           string              `json:"value"`
+	Category        string              `json:"category"`
+	Importance      float64             `json:"importance,omitempty"`
+	Confidence      float64             `json:"confidence,omitempty"`
+	Status          string              `json:"status"`
+	CreatedAt       string              `json:"created_at,omitempty"`
+	UpdatedAt       string              `json:"updated_at"`
+	LastAccessedAt  string              `json:"last_accessed_at,omitempty"`
+	AccessCount     int                 `json:"access_count,omitempty"`
+	PurgeAfter      string              `json:"purge_after,omitempty"`
+	Scope           string              `json:"scope,omitempty"`
+	ScopeID         string              `json:"scope_id,omitempty"`
+	SupersedesID    string              `json:"supersedes_id,omitempty"`
+	SourceRequestID string              `json:"source_request_id,omitempty"`
+	SourceChannelID string              `json:"source_channel_id,omitempty"`
+	Participants    []MemoryParticipant `json:"participants,omitempty"`
 }
 
 type MemoryParticipant struct {

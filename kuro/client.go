@@ -220,6 +220,10 @@ func (client *Client) ListMemories(ctx context.Context, status string, limit, of
 	return client.memory(ctx, MemoryRequest{Action: "list", Status: status, Limit: limit, Offset: offset})
 }
 
+func (client *Client) GetMemory(ctx context.Context, memoryID string) (MemoryResponse, error) {
+	return client.memory(ctx, MemoryRequest{Action: "get", MemoryID: memoryID})
+}
+
 func (client *Client) ForgetMemory(ctx context.Context, memoryID string) (MemoryResponse, error) {
 	return client.memory(ctx, MemoryRequest{Action: "forget", MemoryID: memoryID})
 }

@@ -31,7 +31,44 @@ type GenerateRequest struct {
 }
 
 type GenerateResponse struct {
-	Text string `json:"text"`
+	Text    string             `json:"text"`
+	Metrics *GenerationMetrics `json:"metrics,omitempty"`
+}
+
+type GenerationMetrics struct {
+	Status                  string   `json:"status,omitempty"`
+	Model                   string   `json:"model,omitempty"`
+	Provider                string   `json:"provider,omitempty"`
+	Providers               []string `json:"providers,omitempty"`
+	ProviderModel           string   `json:"providerModel,omitempty"`
+	RoutingStrategy         string   `json:"routingStrategy,omitempty"`
+	RoutingRegion           string   `json:"routingRegion,omitempty"`
+	RoutingAttempt          int      `json:"routingAttempt,omitempty"`
+	GenerationIDs           []string `json:"generationIds,omitempty"`
+	ProviderStatusCode      int      `json:"providerStatusCode,omitempty"`
+	UsageAvailable          bool     `json:"usageAvailable"`
+	PromptTokens            int64    `json:"promptTokens,omitempty"`
+	CompletionTokens        int64    `json:"completionTokens,omitempty"`
+	TotalTokens             int64    `json:"totalTokens,omitempty"`
+	ReasoningTokens         int64    `json:"reasoningTokens,omitempty"`
+	CachedTokens            int64    `json:"cachedTokens,omitempty"`
+	CostUSD                 float64  `json:"costUsd,omitempty"`
+	GenerationCount         int      `json:"generationCount,omitempty"`
+	RetryCount              int      `json:"retryCount,omitempty"`
+	MemoryRecallMs          int64    `json:"memoryRecallMs,omitempty"`
+	BrowserQueueMs          int64    `json:"browserQueueMs,omitempty"`
+	LocaleMs                int64    `json:"localeMs,omitempty"`
+	PersonaMs               int64    `json:"personaMs,omitempty"`
+	InjectUserMs            int64    `json:"injectUserMs,omitempty"`
+	GenerateMs              int64    `json:"generateMs,omitempty"`
+	ValidateMs              int64    `json:"validateMs,omitempty"`
+	RetryGenerateMs         int64    `json:"retryGenerateMs,omitempty"`
+	RetryValidateMs         int64    `json:"retryValidateMs,omitempty"`
+	BrowserTotalMs          int64    `json:"browserTotalMs,omitempty"`
+	EndToEndBeforeDiscordMs int64    `json:"endToEndBeforeDiscordMs,omitempty"`
+	ProviderHeadersMs       int64    `json:"providerHeadersMs,omitempty"`
+	ProviderFirstTokenMs    int64    `json:"providerFirstTokenMs,omitempty"`
+	ProviderDurationMs      int64    `json:"providerDurationMs,omitempty"`
 }
 
 type Memory struct {
@@ -54,13 +91,27 @@ type MemoryParticipant struct {
 	Role        string `json:"role,omitempty"`
 }
 
+type MemoryBackup struct {
+	ID           string         `json:"id"`
+	CreatedAt    string         `json:"created_at"`
+	Reason       string         `json:"reason"`
+	SizeBytes    int64          `json:"size_bytes"`
+	MemoryCount  int            `json:"memory_count"`
+	StatusCounts map[string]int `json:"status_counts,omitempty"`
+}
+
 type MemoryResponse struct {
-	Status             string   `json:"status"`
-	Count              int      `json:"count,omitempty"`
-	TrashRetentionDays int      `json:"trash_retention_days,omitempty"`
-	Memories           []Memory `json:"memories,omitempty"`
-	Memory             *Memory  `json:"memory,omitempty"`
-	ConflictID         string   `json:"conflict_id,omitempty"`
+	Status               string         `json:"status"`
+	Count                int            `json:"count,omitempty"`
+	TrashRetentionDays   int            `json:"trash_retention_days,omitempty"`
+	Memories             []Memory       `json:"memories,omitempty"`
+	Memory               *Memory        `json:"memory,omitempty"`
+	ConflictID           string         `json:"conflict_id,omitempty"`
+	BackupRetentionCount int            `json:"backup_retention_count,omitempty"`
+	Backups              []MemoryBackup `json:"backups,omitempty"`
+	Backup               *MemoryBackup  `json:"backup,omitempty"`
+	SafetyBackup         *MemoryBackup  `json:"safety_backup,omitempty"`
+	RestoredActiveCount  int            `json:"restored_active_count,omitempty"`
 }
 
 type MemoryRequest struct {
@@ -69,6 +120,7 @@ type MemoryRequest struct {
 	Limit    int    `json:"limit,omitempty"`
 	Offset   int    `json:"offset,omitempty"`
 	MemoryID string `json:"memoryId,omitempty"`
+	BackupID string `json:"backupId,omitempty"`
 }
 
 type HealthResponse struct {

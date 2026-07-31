@@ -232,6 +232,18 @@ func (client *Client) ClearMemories(ctx context.Context) (MemoryResponse, error)
 	return client.memory(ctx, MemoryRequest{Action: "clear"})
 }
 
+func (client *Client) ListMemoryBackups(ctx context.Context, limit, offset int) (MemoryResponse, error) {
+	return client.memory(ctx, MemoryRequest{Action: "backup_list", Limit: limit, Offset: offset})
+}
+
+func (client *Client) CreateMemoryBackup(ctx context.Context) (MemoryResponse, error) {
+	return client.memory(ctx, MemoryRequest{Action: "backup_create"})
+}
+
+func (client *Client) RestoreMemoryBackup(ctx context.Context, backupID string) (MemoryResponse, error) {
+	return client.memory(ctx, MemoryRequest{Action: "backup_restore", BackupID: backupID})
+}
+
 func (client *Client) memory(ctx context.Context, request MemoryRequest) (MemoryResponse, error) {
 	var response MemoryResponse
 	err := client.request(ctx, "memory_request", "", request, &response)

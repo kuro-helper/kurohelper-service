@@ -18,16 +18,25 @@ type RecentMessage struct {
 	CreatedAt   time.Time `json:"createdAt"`
 }
 
+type ImageAttachment struct {
+	ID          string `json:"id,omitempty"`
+	URL         string `json:"url"`
+	Filename    string `json:"filename,omitempty"`
+	ContentType string `json:"contentType,omitempty"`
+	Size        int    `json:"size,omitempty"`
+}
+
 type GenerateRequest struct {
-	RequestID           string          `json:"requestId"`
-	ChannelID           string          `json:"channelId"`
-	UserID              string          `json:"userId"`
-	DisplayName         string          `json:"displayName"`
-	Text                string          `json:"text"`
-	RecentContext       string          `json:"recentChannelContext,omitempty"`
-	RetrievalText       string          `json:"retrievalText,omitempty"`
-	MentionedUsers      []MentionedUser `json:"mentionedUsers,omitempty"`
-	ContextParticipants []MentionedUser `json:"contextParticipants,omitempty"`
+	RequestID           string            `json:"requestId"`
+	ChannelID           string            `json:"channelId"`
+	UserID              string            `json:"userId"`
+	DisplayName         string            `json:"displayName"`
+	Text                string            `json:"text"`
+	RecentContext       string            `json:"recentChannelContext,omitempty"`
+	RetrievalText       string            `json:"retrievalText,omitempty"`
+	MentionedUsers      []MentionedUser   `json:"mentionedUsers,omitempty"`
+	ContextParticipants []MentionedUser   `json:"contextParticipants,omitempty"`
+	Images              []ImageAttachment `json:"images,omitempty"`
 }
 
 type GenerateResponse struct {

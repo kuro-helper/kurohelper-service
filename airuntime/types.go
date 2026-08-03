@@ -1,4 +1,4 @@
-package kuro
+package airuntime
 
 import "time"
 
@@ -10,12 +10,13 @@ type MentionedUser struct {
 }
 
 type RecentMessage struct {
-	ID          string    `json:"id"`
-	UserID      string    `json:"userId"`
-	DisplayName string    `json:"displayName"`
-	Content     string    `json:"content"`
-	Assistant   bool      `json:"assistant"`
-	CreatedAt   time.Time `json:"createdAt"`
+	ID          string            `json:"id"`
+	UserID      string            `json:"userId"`
+	DisplayName string            `json:"displayName"`
+	Content     string            `json:"content"`
+	Assistant   bool              `json:"assistant"`
+	CreatedAt   time.Time         `json:"createdAt"`
+	Images      []ImageAttachment `json:"images,omitempty"`
 }
 
 type ImageAttachment struct {
@@ -24,6 +25,9 @@ type ImageAttachment struct {
 	Filename    string `json:"filename,omitempty"`
 	ContentType string `json:"contentType,omitempty"`
 	Size        int    `json:"size,omitempty"`
+	MessageID   string `json:"messageId,omitempty"`
+	AuthorName  string `json:"authorName,omitempty"`
+	ContextOnly bool   `json:"contextOnly,omitempty"`
 }
 
 type GenerateRequest struct {
@@ -33,6 +37,7 @@ type GenerateRequest struct {
 	DisplayName         string            `json:"displayName"`
 	Text                string            `json:"text"`
 	RecentContext       string            `json:"recentChannelContext,omitempty"`
+	RecentMessages      []RecentMessage   `json:"recentMessages,omitempty"`
 	RetrievalText       string            `json:"retrievalText,omitempty"`
 	MentionedUsers      []MentionedUser   `json:"mentionedUsers,omitempty"`
 	ContextParticipants []MentionedUser   `json:"contextParticipants,omitempty"`
@@ -42,6 +47,13 @@ type GenerateRequest struct {
 type GenerateResponse struct {
 	Text    string             `json:"text"`
 	Metrics *GenerationMetrics `json:"metrics,omitempty"`
+}
+
+type MetricEvent struct {
+	RequestID string             `json:"requestId"`
+	ChannelID string             `json:"channelId"`
+	Operation string             `json:"operation"`
+	Metrics   *GenerationMetrics `json:"metrics,omitempty"`
 }
 
 type GenerationMetrics struct {
@@ -146,4 +158,13 @@ type HealthResponse struct {
 	SillyTavernReady   bool   `json:"sillyTavernReady"`
 	MemoryEnabled      bool   `json:"memoryEnabled"`
 	TrashRetentionDays int    `json:"trashRetentionDays"`
+}
+
+type RawReply struct {
+	CachedAt string `json:"cachedAt,omitempty"`
+	RawText  string `json:"rawText"`
+}
+
+type RawRepliesResponse struct {
+	Entries []RawReply `json:"entries"`
 }

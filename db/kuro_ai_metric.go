@@ -16,6 +16,7 @@ type KuroAIMetric struct {
 	RequestID            string    `gorm:"primaryKey;column:request_id;size:64"`
 	CreatedAt            time.Time `gorm:"index;not null"`
 	ChannelID            string    `gorm:"index;size:32;not null"`
+	Operation            string    `gorm:"index;size:32;not null;default:'generation'"`
 	Status               string    `gorm:"index;size:16;not null"`
 	Model                string    `gorm:"size:160"`
 	Provider             string    `gorm:"index;size:120"`
@@ -77,22 +78,27 @@ func (KuroAIDailyMetric) TableName() string {
 }
 
 type KuroAIStats struct {
-	RequestCount      int64
-	SuccessCount      int64
-	FailureCount      int64
-	RetryCount        int64
-	UsageCount        int64
-	PromptTokens      int64
-	CompletionTokens  int64
-	TotalTokens       int64
-	ReasoningTokens   int64
-	CachedTokens      int64
-	CostUSD           float64
-	AverageEndToEndMs float64
-	P50EndToEndMs     float64
-	P95EndToEndMs     float64
-	AverageRuntimeMs  float64
-	AverageProviderMs float64
+	RequestCount                     int64
+	SuccessCount                     int64
+	FailureCount                     int64
+	RetryCount                       int64
+	UsageCount                       int64
+	PromptTokens                     int64
+	CompletionTokens                 int64
+	TotalTokens                      int64
+	ReasoningTokens                  int64
+	CachedTokens                     int64
+	CostUSD                          float64
+	AverageEndToEndMs                float64
+	P50EndToEndMs                    float64
+	P95EndToEndMs                    float64
+	AverageRuntimeMs                 float64
+	AverageProviderMs                float64
+	MemoryExtractionCount            int64
+	MemoryExtractionPromptTokens     int64
+	MemoryExtractionCompletionTokens int64
+	MemoryExtractionTotalTokens      int64
+	MemoryExtractionCostUSD          float64
 }
 
 type KuroAIProviderStats struct {
@@ -113,12 +119,16 @@ func RecordKuroAIMetric(database *gorm.DB, metric *KuroAIMetric) error {
 	}
 	metric.RequestID = strings.TrimSpace(metric.RequestID)
 	metric.ChannelID = strings.TrimSpace(metric.ChannelID)
+	metric.Operation = strings.TrimSpace(metric.Operation)
 	metric.Status = strings.TrimSpace(metric.Status)
 	if metric.RequestID == "" || metric.ChannelID == "" || metric.Status == "" {
 		return ErrParameterNotFound
 	}
 	if metric.CreatedAt.IsZero() {
 		metric.CreatedAt = time.Now()
+	}
+	if metric.Operation == "" {
+		metric.Operation = "generation"
 	}
 
 	return database.Transaction(func(tx *gorm.DB) error {
@@ -203,11 +213,16 @@ func GetKuroAIStats(database *gorm.DB, since time.Time) (KuroAIStats, error) {
 			COALESCE(SUM(reasoning_tokens), 0) AS reasoning_tokens,
 			COALESCE(SUM(cached_tokens), 0) AS cached_tokens,
 			COALESCE(SUM(cost_usd), 0) AS cost_usd,
-			COALESCE(AVG(end_to_end_ms) FILTER (WHERE status = 'success'), 0) AS average_end_to_end_ms,
-			COALESCE(PERCENTILE_CONT(0.50) WITHIN GROUP (ORDER BY end_to_end_ms) FILTER (WHERE status = 'success'), 0) AS p50_end_to_end_ms,
-			COALESCE(PERCENTILE_CONT(0.95) WITHIN GROUP (ORDER BY end_to_end_ms) FILTER (WHERE status = 'success'), 0) AS p95_end_to_end_ms,
-			COALESCE(AVG(runtime_round_trip_ms) FILTER (WHERE status = 'success'), 0) AS average_runtime_ms,
-			COALESCE(AVG(provider_duration_ms) FILTER (WHERE status = 'success' AND provider_duration_ms > 0), 0) AS average_provider_ms
+			COALESCE(AVG(end_to_end_ms) FILTER (WHERE status = 'success' AND operation = 'generation'), 0) AS average_end_to_end_ms,
+			COALESCE(PERCENTILE_CONT(0.50) WITHIN GROUP (ORDER BY end_to_end_ms) FILTER (WHERE status = 'success' AND operation = 'generation'), 0) AS p50_end_to_end_ms,
+			COALESCE(PERCENTILE_CONT(0.95) WITHIN GROUP (ORDER BY end_to_end_ms) FILTER (WHERE status = 'success' AND operation = 'generation'), 0) AS p95_end_to_end_ms,
+			COALESCE(AVG(runtime_round_trip_ms) FILTER (WHERE status = 'success' AND operation = 'generation'), 0) AS average_runtime_ms,
+			COALESCE(AVG(provider_duration_ms) FILTER (WHERE status = 'success' AND operation = 'generation' AND provider_duration_ms > 0), 0) AS average_provider_ms,
+			COUNT(*) FILTER (WHERE operation = 'memory_extraction') AS memory_extraction_count,
+			COALESCE(SUM(prompt_tokens) FILTER (WHERE operation = 'memory_extraction'), 0) AS memory_extraction_prompt_tokens,
+			COALESCE(SUM(completion_tokens) FILTER (WHERE operation = 'memory_extraction'), 0) AS memory_extraction_completion_tokens,
+			COALESCE(SUM(total_tokens) FILTER (WHERE operation = 'memory_extraction'), 0) AS memory_extraction_total_tokens,
+			COALESCE(SUM(cost_usd) FILTER (WHERE operation = 'memory_extraction'), 0) AS memory_extraction_cost_usd
 		FROM kuro_ai_metrics
 		WHERE created_at >= ?
 	`, since).Scan(&stats).Error

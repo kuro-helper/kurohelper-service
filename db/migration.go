@@ -35,6 +35,7 @@ func Migration(db *gorm.DB) error {
 		&AppConfig{},
 		&Announcement{},
 		&KuroChannelState{},
+		&KuroContextMessage{},
 		&KuroAIMetric{},
 		&KuroAIDailyMetric{},
 	); err != nil {

@@ -1,4 +1,4 @@
-package kuro
+package airuntime
 
 import (
 	"context"
@@ -45,13 +45,15 @@ type requestResult struct {
 }
 
 type Client struct {
-	config    Config
-	connMu    sync.RWMutex
-	conn      *websocket.Conn
-	writeMu   sync.Mutex
-	pendingMu sync.Mutex
-	pending   map[string]chan requestResult
-	connected atomic.Bool
+	config        Config
+	connMu        sync.RWMutex
+	conn          *websocket.Conn
+	writeMu       sync.Mutex
+	pendingMu     sync.Mutex
+	pending       map[string]chan requestResult
+	connected     atomic.Bool
+	metricMu      sync.RWMutex
+	metricHandler func(MetricEvent)
 }
 
 func NewClient(config Config) (*Client, error) {
@@ -77,6 +79,14 @@ func (client *Client) Start(ctx context.Context) {
 
 func (client *Client) Connected() bool {
 	return client.connected.Load()
+}
+
+// SetMetricHandler registers the consumer for background AI usage events such
+// as memory extraction, which completes after the main generation response.
+func (client *Client) SetMetricHandler(handler func(MetricEvent)) {
+	client.metricMu.Lock()
+	client.metricHandler = handler
+	client.metricMu.Unlock()
 }
 
 func (client *Client) Close() error {
@@ -135,6 +145,23 @@ func (client *Client) readLoop(ctx context.Context, conn *websocket.Conn) error 
 			return err
 		}
 		if message.Version != ProtocolVersion || message.RequestID == "" {
+			continue
+		}
+		if message.Type == "metric_event" {
+			var event MetricEvent
+			if err := json.Unmarshal(message.Payload, &event); err != nil {
+				slog.Warn("Could not decode Kuro runtime metric event", "error", err)
+				continue
+			}
+			if event.RequestID == "" {
+				event.RequestID = message.RequestID
+			}
+			client.metricMu.RLock()
+			handler := client.metricHandler
+			client.metricMu.RUnlock()
+			if handler != nil {
+				go handler(event)
+			}
 			continue
 		}
 		if message.Type == "typing" || message.Type == "images" {
@@ -257,6 +284,12 @@ func (client *Client) memory(ctx context.Context, request MemoryRequest) (Memory
 func (client *Client) Health(ctx context.Context) (HealthResponse, error) {
 	var response HealthResponse
 	err := client.request(ctx, "health_request", "", struct{}{}, &response)
+	return response, err
+}
+
+func (client *Client) ListRawReplies(ctx context.Context) (RawRepliesResponse, error) {
+	var response RawRepliesResponse
+	err := client.request(ctx, "raw_replies_request", "", struct{}{}, &response)
 	return response, err
 }
 

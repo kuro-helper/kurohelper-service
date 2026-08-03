@@ -2,8 +2,6 @@ package kurohelperservice
 
 import (
 	"kurohelperservice/db"
-	"log/slog"
-	"os"
 )
 
 var (
@@ -11,11 +9,10 @@ var (
 )
 
 // init ZhtwToJp store
-func InitZhtwToJp() {
+func InitZhtwToJp() error {
 	entries, err := db.GetAllZhtwToJps(db.Dbs)
 	if err != nil {
-		slog.Error(err.Error())
-		os.Exit(1)
+		return err
 	}
 
 	// 轉換
@@ -29,6 +26,7 @@ func InitZhtwToJp() {
 			ZhtwToJp[keyRunes[0]] = valRunes[0]
 		}
 	}
+	return nil
 }
 
 func ZhTwToJp(search string) string {

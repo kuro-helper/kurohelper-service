@@ -2,6 +2,7 @@ package db
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"gorm.io/driver/postgres"
@@ -15,6 +16,7 @@ type Config struct {
 	DBPassword string
 	DBName     string
 	DBPort     string
+	SSLMode    string
 }
 
 // 全域連線池
@@ -25,12 +27,17 @@ func InitDsn(config Config) error {
 	if config.DBHost == "" {
 		config.DBHost = "localhost"
 	}
-	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable",
+	config.SSLMode = strings.ToLower(strings.TrimSpace(config.SSLMode))
+	if config.SSLMode == "" {
+		config.SSLMode = "disable"
+	}
+	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=%s",
 		config.DBHost,
 		config.DBOwner,
 		config.DBPassword,
 		config.DBName,
 		config.DBPort,
+		config.SSLMode,
 	)
 
 	// get connect db variable

@@ -2,8 +2,6 @@ package seiya
 
 import (
 	"kurohelperservice/db"
-	"log/slog"
-	"os"
 )
 
 var (
@@ -11,11 +9,10 @@ var (
 )
 
 // init SeiyaCorrespond store
-func InitSeiyaCorrespond() {
+func InitSeiyaCorrespond() error {
 	entries, err := db.GetAllSeiyaCorresponds(db.Dbs)
 	if err != nil {
-		slog.Error(err.Error())
-		os.Exit(1)
+		return err
 	}
 
 	// Translate
@@ -23,4 +20,5 @@ func InitSeiyaCorrespond() {
 	for _, e := range entries {
 		SeiyaCorrespond[e.GameName] = e.SeiyaURL
 	}
+	return nil
 }

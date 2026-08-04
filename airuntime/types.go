@@ -184,9 +184,15 @@ type VisionCacheStats struct {
 }
 
 type RawReply struct {
-	CachedAt string `json:"cachedAt,omitempty"`
-	RawText  string `json:"rawText"`
-	Source   string `json:"source,omitempty"`
+	CachedAt  string `json:"cachedAt,omitempty"`
+	RawText   string `json:"rawText"`
+	Source    string `json:"source,omitempty"`
+	ChannelID string `json:"channelId,omitempty"`
+	RequestID string `json:"requestId,omitempty"`
+}
+
+type RawRepliesRequest struct {
+	ChannelID string `json:"channelId"`
 }
 
 type RawRepliesResponse struct {

@@ -11,6 +11,24 @@ import (
 
 type AIStats = db.KuroAIStats
 type AIProviderStats = db.KuroAIProviderStats
+type AccessRule = db.KuroAccessRule
+
+const (
+	AccessScopeChannel = db.KuroAccessScopeChannel
+	AccessScopeGuild   = db.KuroAccessScopeGuild
+)
+
+func ListAccessRules() ([]AccessRule, error) {
+	return db.ListKuroAccessRules(db.Dbs)
+}
+
+func SetAccessRule(scopeType, scopeID string, enabled bool) error {
+	return db.UpsertKuroAccessRule(db.Dbs, scopeType, scopeID, enabled)
+}
+
+func DeleteAccessRule(scopeType, scopeID string) error {
+	return db.DeleteKuroAccessRule(db.Dbs, scopeType, scopeID)
+}
 
 func GetContextBoundary(channelID string) (string, error) {
 	state, err := db.GetKuroChannelState(db.Dbs, channelID)

@@ -287,9 +287,9 @@ func (client *Client) Health(ctx context.Context) (HealthResponse, error) {
 	return response, err
 }
 
-func (client *Client) ListRawReplies(ctx context.Context) (RawRepliesResponse, error) {
+func (client *Client) ListRawReplies(ctx context.Context, channelID string) (RawRepliesResponse, error) {
 	var response RawRepliesResponse
-	err := client.request(ctx, "raw_replies_request", "", struct{}{}, &response)
+	err := client.request(ctx, "raw_replies_request", "", RawRepliesRequest{ChannelID: channelID}, &response)
 	return response, err
 }
 

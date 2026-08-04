@@ -99,6 +99,11 @@ type KuroAIStats struct {
 	MemoryExtractionCompletionTokens int64
 	MemoryExtractionTotalTokens      int64
 	MemoryExtractionCostUSD          float64
+	VisionGenerationCount            int64
+	VisionPromptTokens               int64
+	VisionCompletionTokens           int64
+	VisionTotalTokens                int64
+	VisionCostUSD                    float64
 }
 
 type KuroAIProviderStats struct {
@@ -222,7 +227,12 @@ func GetKuroAIStats(database *gorm.DB, since time.Time) (KuroAIStats, error) {
 			COALESCE(SUM(prompt_tokens) FILTER (WHERE operation = 'memory_extraction'), 0) AS memory_extraction_prompt_tokens,
 			COALESCE(SUM(completion_tokens) FILTER (WHERE operation = 'memory_extraction'), 0) AS memory_extraction_completion_tokens,
 			COALESCE(SUM(total_tokens) FILTER (WHERE operation = 'memory_extraction'), 0) AS memory_extraction_total_tokens,
-			COALESCE(SUM(cost_usd) FILTER (WHERE operation = 'memory_extraction'), 0) AS memory_extraction_cost_usd
+			COALESCE(SUM(cost_usd) FILTER (WHERE operation = 'memory_extraction'), 0) AS memory_extraction_cost_usd,
+			COALESCE(SUM(GREATEST(generation_count, 1)) FILTER (WHERE operation = 'vision'), 0) AS vision_generation_count,
+			COALESCE(SUM(prompt_tokens) FILTER (WHERE operation = 'vision'), 0) AS vision_prompt_tokens,
+			COALESCE(SUM(completion_tokens) FILTER (WHERE operation = 'vision'), 0) AS vision_completion_tokens,
+			COALESCE(SUM(total_tokens) FILTER (WHERE operation = 'vision'), 0) AS vision_total_tokens,
+			COALESCE(SUM(cost_usd) FILTER (WHERE operation = 'vision'), 0) AS vision_cost_usd
 		FROM kuro_ai_metrics
 		WHERE created_at >= ?
 	`, since).Scan(&stats).Error

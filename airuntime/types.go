@@ -20,14 +20,16 @@ type RecentMessage struct {
 }
 
 type ImageAttachment struct {
-	ID          string `json:"id,omitempty"`
-	URL         string `json:"url"`
-	Filename    string `json:"filename,omitempty"`
-	ContentType string `json:"contentType,omitempty"`
-	Size        int    `json:"size,omitempty"`
-	MessageID   string `json:"messageId,omitempty"`
-	AuthorName  string `json:"authorName,omitempty"`
-	ContextOnly bool   `json:"contextOnly,omitempty"`
+	ID                string `json:"id,omitempty"`
+	URL               string `json:"url"`
+	Filename          string `json:"filename,omitempty"`
+	ContentType       string `json:"contentType,omitempty"`
+	Size              int    `json:"size,omitempty"`
+	MessageID         string `json:"messageId,omitempty"`
+	AuthorName        string `json:"authorName,omitempty"`
+	SourceKind        string `json:"sourceKind,omitempty"`
+	SourceMessageText string `json:"sourceMessageText,omitempty"`
+	ContextOnly       bool   `json:"contextOnly,omitempty"`
 }
 
 type GenerateRequest struct {
@@ -154,15 +156,37 @@ type MemoryRequest struct {
 }
 
 type HealthResponse struct {
-	Status             string `json:"status"`
-	SillyTavernReady   bool   `json:"sillyTavernReady"`
-	MemoryEnabled      bool   `json:"memoryEnabled"`
-	TrashRetentionDays int    `json:"trashRetentionDays"`
+	Status             string            `json:"status"`
+	SillyTavernReady   bool              `json:"sillyTavernReady"`
+	MemoryEnabled      bool              `json:"memoryEnabled"`
+	TrashRetentionDays int               `json:"trashRetentionDays"`
+	VisionCache        *VisionCacheStats `json:"visionCache,omitempty"`
+}
+
+type VisionCacheStats struct {
+	Enabled                 bool    `json:"enabled"`
+	Persistent              bool    `json:"persistent"`
+	Entries                 int     `json:"entries"`
+	Images                  int     `json:"images"`
+	OCREntries              int     `json:"ocrEntries"`
+	ObservationEntries      int     `json:"observationEntries"`
+	MaxImages               int     `json:"maxImages"`
+	MaxObservationsPerImage int     `json:"maxObservationsPerImage"`
+	Hits                    int64   `json:"hits"`
+	Misses                  int64   `json:"misses"`
+	HitRate                 float64 `json:"hitRate"`
+	Writes                  int64   `json:"writes"`
+	LoadedEntries           int64   `json:"loadedEntries"`
+	ExpiredEntries          int64   `json:"expiredEntries"`
+	EvictedImages           int64   `json:"evictedImages"`
+	EvictedEntries          int64   `json:"evictedEntries"`
+	EvictedObservations     int64   `json:"evictedObservations"`
 }
 
 type RawReply struct {
 	CachedAt string `json:"cachedAt,omitempty"`
 	RawText  string `json:"rawText"`
+	Source   string `json:"source,omitempty"`
 }
 
 type RawRepliesResponse struct {

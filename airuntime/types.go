@@ -9,6 +9,19 @@ type MentionedUser struct {
 	DisplayName string `json:"displayName"`
 }
 
+// ReplyReference preserves the Discord message relationship separately from
+// message content so the AI runtime can render it as context instead of
+// flattening two speakers into one turn.
+type ReplyReference struct {
+	MessageID   string `json:"messageId,omitempty"`
+	UserID      string `json:"userId,omitempty"`
+	DisplayName string `json:"displayName,omitempty"`
+	Content     string `json:"content,omitempty"`
+	Assistant   bool   `json:"assistant,omitempty"`
+	ImageCount  int    `json:"imageCount,omitempty"`
+	Unavailable bool   `json:"unavailable,omitempty"`
+}
+
 type RecentMessage struct {
 	ID          string            `json:"id"`
 	UserID      string            `json:"userId"`
@@ -17,6 +30,7 @@ type RecentMessage struct {
 	Assistant   bool              `json:"assistant"`
 	CreatedAt   time.Time         `json:"createdAt"`
 	Images      []ImageAttachment `json:"images,omitempty"`
+	ReplyTo     *ReplyReference   `json:"replyTo,omitempty"`
 }
 
 type ImageAttachment struct {
@@ -44,6 +58,7 @@ type GenerateRequest struct {
 	MentionedUsers      []MentionedUser   `json:"mentionedUsers,omitempty"`
 	ContextParticipants []MentionedUser   `json:"contextParticipants,omitempty"`
 	Images              []ImageAttachment `json:"images,omitempty"`
+	ReplyTo             *ReplyReference   `json:"replyTo,omitempty"`
 }
 
 type GenerateResponse struct {
@@ -95,26 +110,32 @@ type GenerationMetrics struct {
 }
 
 type Memory struct {
-	ID              string              `json:"id"`
-	SubjectID       string              `json:"subject_id,omitempty"`
-	SubjectName     string              `json:"subject_name"`
-	Key             string              `json:"key"`
-	Value           string              `json:"value"`
-	Category        string              `json:"category"`
-	Importance      float64             `json:"importance,omitempty"`
-	Confidence      float64             `json:"confidence,omitempty"`
-	Status          string              `json:"status"`
-	CreatedAt       string              `json:"created_at,omitempty"`
-	UpdatedAt       string              `json:"updated_at"`
-	LastAccessedAt  string              `json:"last_accessed_at,omitempty"`
-	AccessCount     int                 `json:"access_count,omitempty"`
-	PurgeAfter      string              `json:"purge_after,omitempty"`
-	Scope           string              `json:"scope,omitempty"`
-	ScopeID         string              `json:"scope_id,omitempty"`
-	SupersedesID    string              `json:"supersedes_id,omitempty"`
-	SourceRequestID string              `json:"source_request_id,omitempty"`
-	SourceChannelID string              `json:"source_channel_id,omitempty"`
-	Participants    []MemoryParticipant `json:"participants,omitempty"`
+	ID                 string              `json:"id"`
+	SubjectID          string              `json:"subject_id,omitempty"`
+	SubjectName        string              `json:"subject_name"`
+	Key                string              `json:"key"`
+	Value              string              `json:"value"`
+	Category           string              `json:"category"`
+	Importance         float64             `json:"importance,omitempty"`
+	Confidence         float64             `json:"confidence,omitempty"`
+	Status             string              `json:"status"`
+	CreatedAt          string              `json:"created_at,omitempty"`
+	UpdatedAt          string              `json:"updated_at"`
+	LastAccessedAt     string              `json:"last_accessed_at,omitempty"`
+	AccessCount        int                 `json:"access_count,omitempty"`
+	PurgeAfter         string              `json:"purge_after,omitempty"`
+	Scope              string              `json:"scope,omitempty"`
+	ScopeID            string              `json:"scope_id,omitempty"`
+	SupersedesID       string              `json:"supersedes_id,omitempty"`
+	ConflictMemoryID   string              `json:"conflict_memory_id,omitempty"`
+	ConflictType       string              `json:"conflict_type,omitempty"`
+	ConflictSimilarity float64             `json:"conflict_similarity,omitempty"`
+	EvidenceCount      int                 `json:"evidence_count,omitempty"`
+	EvidenceSources    []string            `json:"evidence_sources,omitempty"`
+	ResolutionNote     string              `json:"resolution_note,omitempty"`
+	SourceRequestID    string              `json:"source_request_id,omitempty"`
+	SourceChannelID    string              `json:"source_channel_id,omitempty"`
+	Participants       []MemoryParticipant `json:"participants,omitempty"`
 }
 
 type MemoryParticipant struct {
@@ -144,15 +165,17 @@ type MemoryResponse struct {
 	Backup               *MemoryBackup  `json:"backup,omitempty"`
 	SafetyBackup         *MemoryBackup  `json:"safety_backup,omitempty"`
 	RestoredActiveCount  int            `json:"restored_active_count,omitempty"`
+	Resolution           string         `json:"resolution,omitempty"`
 }
 
 type MemoryRequest struct {
-	Action   string `json:"action"`
-	Status   string `json:"status,omitempty"`
-	Limit    int    `json:"limit,omitempty"`
-	Offset   int    `json:"offset,omitempty"`
-	MemoryID string `json:"memoryId,omitempty"`
-	BackupID string `json:"backupId,omitempty"`
+	Action     string `json:"action"`
+	Status     string `json:"status,omitempty"`
+	Limit      int    `json:"limit,omitempty"`
+	Offset     int    `json:"offset,omitempty"`
+	MemoryID   string `json:"memoryId,omitempty"`
+	BackupID   string `json:"backupId,omitempty"`
+	Resolution string `json:"resolution,omitempty"`
 }
 
 type HealthResponse struct {

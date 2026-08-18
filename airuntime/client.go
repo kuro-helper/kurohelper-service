@@ -259,6 +259,10 @@ func (client *Client) RestoreMemory(ctx context.Context, memoryID string) (Memor
 	return client.memory(ctx, MemoryRequest{Action: "restore", MemoryID: memoryID})
 }
 
+func (client *Client) ResolveMemory(ctx context.Context, memoryID, resolution string) (MemoryResponse, error) {
+	return client.memory(ctx, MemoryRequest{Action: "resolve", MemoryID: memoryID, Resolution: resolution})
+}
+
 func (client *Client) ClearMemories(ctx context.Context) (MemoryResponse, error) {
 	return client.memory(ctx, MemoryRequest{Action: "clear"})
 }

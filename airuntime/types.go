@@ -52,7 +52,6 @@ type GenerateRequest struct {
 	UserID              string            `json:"userId"`
 	DisplayName         string            `json:"displayName"`
 	Text                string            `json:"text"`
-	RecentContext       string            `json:"recentChannelContext,omitempty"`
 	RecentMessages      []RecentMessage   `json:"recentMessages,omitempty"`
 	RetrievalText       string            `json:"retrievalText,omitempty"`
 	MentionedUsers      []MentionedUser   `json:"mentionedUsers,omitempty"`

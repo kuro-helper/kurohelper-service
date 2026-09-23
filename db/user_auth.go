@@ -54,3 +54,10 @@ func CreateUserAuth(db *gorm.DB, userID int, userName, password string) error {
 
 	return nil
 }
+
+// 更新使用者帳號密碼（傳入已 hash 的密碼）
+func UpdateUserAuthPassword(db *gorm.DB, userID int, hashedPassword string) error {
+	return db.Model(&UserAuth{}).
+		Where("user_id = ?", userID).
+		Update("password", hashedPassword).Error
+}

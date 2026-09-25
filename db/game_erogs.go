@@ -49,6 +49,12 @@ func GetAllGameErogs(db *gorm.DB) ([]GameErogs, error) {
 	return games, err
 }
 
+func GetGameErogsByBrandID(db *gorm.DB, brandID int) ([]GameErogs, error) {
+	var games []GameErogs
+	err := db.Where("brand_erogs_id = ?", brandID).Find(&games).Error
+	return games, err
+}
+
 func GetGameErogsByID(db *gorm.DB, id int) (GameErogs, error) {
 	var game GameErogs
 	err := db.First(&game, id).Error

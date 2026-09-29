@@ -16,6 +16,9 @@ type GameErogs struct {
 	UpdatedAt    time.Time `gorm:"autoUpdateTime" json:"updatedAt"`
 
 	BrandErogs *BrandErogs `gorm:"foreignKey:BrandErogsID;references:ID" json:"brandErogs,omitempty"` // 單向 preload
+
+	// LEFT JOIN games.image_url
+	GameImageURL string `gorm:"->;column:game_image_url" json:"gameImageUrl"`
 }
 
 // 確保指定的GameErogs存在，不存在就直接建立
@@ -45,18 +48,27 @@ func UpdateGameErogs(db *gorm.DB, id int, game *GameErogs) error {
 
 func GetAllGameErogs(db *gorm.DB) ([]GameErogs, error) {
 	var games []GameErogs
-	err := db.Preload("BrandErogs").Find(&games).Error
+	err := db.Select("game_erogs.*, games.image_url AS game_image_url").
+		Joins("LEFT JOIN games ON games.erogs_id = game_erogs.id").
+		Preload("BrandErogs").
+		Find(&games).Error
 	return games, err
 }
 
 func GetGameErogsByBrandID(db *gorm.DB, brandID int) ([]GameErogs, error) {
 	var games []GameErogs
-	err := db.Where("brand_erogs_id = ?", brandID).Find(&games).Error
+	err := db.Select("game_erogs.*, games.image_url AS game_image_url").
+		Joins("LEFT JOIN games ON games.erogs_id = game_erogs.id").
+		Where("game_erogs.brand_erogs_id = ?", brandID).
+		Find(&games).Error
 	return games, err
 }
 
 func GetGameErogsByID(db *gorm.DB, id int) (GameErogs, error) {
 	var game GameErogs
-	err := db.First(&game, id).Error
+	err := db.Select("game_erogs.*, games.image_url AS game_image_url").
+		Joins("LEFT JOIN games ON games.erogs_id = game_erogs.id").
+		Where("game_erogs.id = ?", id).
+		First(&game).Error
 	return game, err
 }

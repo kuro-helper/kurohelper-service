@@ -1,11 +1,12 @@
 package db
 
 import (
+	"errors"
 	"strconv"
 	"time"
 
+	"github.com/jackc/pgx/v5/pgconn"
 	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 )
 
 const (
@@ -38,13 +39,25 @@ func EnsureDiscordUser(db *gorm.DB, discordID, userName string) error {
 		return ErrParameterNotFound
 	}
 
-	var user User
+	_, err := GetUserByDiscordID(db, discordID)
+	if err == nil {
+		return nil
+	}
+	if !errors.Is(err, gorm.ErrRecordNotFound) {
+		return err
+	}
 
-	user = User{DiscordID: &discordID, Name: userName}
-	return db.Clauses(clause.OnConflict{
-		Columns:   []clause.Column{{Name: "discord_id"}},
-		DoNothing: true,
-	}).Create(&user).Error
+	user := User{DiscordID: &discordID, Name: userName}
+	if err := db.Create(&user).Error; err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
+			if _, getErr := GetUserByDiscordID(db, discordID); getErr == nil {
+				return nil
+			}
+		}
+		return err
+	}
+	return nil
 }
 
 // 依據 userID 取得單一使用者資料

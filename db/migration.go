@@ -21,6 +21,7 @@ func Migration(db *gorm.DB) error {
 		&DiscordAllowList{},
 		&BrandErogs{},
 		&GameErogs{},
+		&Game{},
 	); err != nil {
 		return err
 	}

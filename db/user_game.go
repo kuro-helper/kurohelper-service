@@ -47,7 +47,7 @@ func GetUserGameFinishedByID(db *gorm.DB, userID int) ([]UserGame, error) {
 
 	err := db.
 		Model(&UserGame{}).
-		Preload("GameErogs").
+		Preload("GameErogs", withGamesFallbackImage).
 		// Preload("GameErogs.BrandErogs").
 		Where("user_id = ?", userID).
 		Where("status = ?", UserGameStatusFinished).
@@ -77,7 +77,7 @@ func GetUserGameByDiscordID(db *gorm.DB, discordID string) ([]UserGame, error) {
 
 		return tx.
 			Model(&UserGame{}).
-			Preload("GameErogs").
+			Preload("GameErogs", withGamesFallbackImage).
 			Preload("GameErogs.BrandErogs").
 			Where("user_id = ?", users[0].ID).
 			Order("COALESCE(finished_date, created_at) DESC").
@@ -95,7 +95,7 @@ func GetUserGameByUserID(db *gorm.DB, userID int) ([]UserGame, error) {
 
 	err := db.
 		Model(&UserGame{}).
-		Preload("GameErogs").
+		Preload("GameErogs", withGamesFallbackImage).
 		Preload("GameErogs.BrandErogs").
 		Where("user_id = ?", userID).
 		Order("COALESCE(finished_date, created_at) DESC").
@@ -112,7 +112,7 @@ func GetUserGameByUserAndGameErogsID(db *gorm.DB, userID, gameErogsID int) (User
 
 	err := db.
 		Model(&UserGame{}).
-		Preload("GameErogs").
+		Preload("GameErogs", withGamesFallbackImage).
 		Preload("GameErogs.BrandErogs").
 		Where("user_id = ? AND game_erogs_id = ?", userID, gameErogsID).
 		First(&result).Error
@@ -131,7 +131,7 @@ func GetUserGameByUserAndGameNameLike(db *gorm.DB, userID int, gameErogsName str
 		Joins("JOIN game_erogs ON game_erogs.id = user_games.game_erogs_id").
 		Where("user_games.user_id = ?", userID).
 		Where("game_erogs.name ILIKE ?", "%"+gameErogsName+"%").
-		Preload("GameErogs").
+		Preload("GameErogs", withGamesFallbackImage).
 		First(&result).Error
 	if err != nil {
 		return result, err

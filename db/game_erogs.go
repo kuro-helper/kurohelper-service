@@ -21,6 +21,11 @@ type GameErogs struct {
 	GameImageURL string `gorm:"->;column:game_image_url" json:"gameImageUrl"`
 }
 
+func withGamesFallbackImage(db *gorm.DB) *gorm.DB {
+	return db.Select("game_erogs.*, games.image_url AS game_image_url").
+		Joins("LEFT JOIN games ON games.erogs_id = game_erogs.id")
+}
+
 // 確保指定的GameErogs存在，不存在就直接建立
 func EnsureGameErogs(db *gorm.DB, gameID int, gameName string, gameImage string, brandID int, category string) (*GameErogs, error) {
 	var game GameErogs
@@ -48,8 +53,7 @@ func UpdateGameErogs(db *gorm.DB, id int, game *GameErogs) error {
 
 func GetAllGameErogs(db *gorm.DB) ([]GameErogs, error) {
 	var games []GameErogs
-	err := db.Select("game_erogs.*, games.image_url AS game_image_url").
-		Joins("LEFT JOIN games ON games.erogs_id = game_erogs.id").
+	err := withGamesFallbackImage(db.Model(&GameErogs{})).
 		Preload("BrandErogs").
 		Find(&games).Error
 	return games, err
@@ -57,8 +61,7 @@ func GetAllGameErogs(db *gorm.DB) ([]GameErogs, error) {
 
 func GetGameErogsByBrandID(db *gorm.DB, brandID int) ([]GameErogs, error) {
 	var games []GameErogs
-	err := db.Select("game_erogs.*, games.image_url AS game_image_url").
-		Joins("LEFT JOIN games ON games.erogs_id = game_erogs.id").
+	err := withGamesFallbackImage(db.Model(&GameErogs{})).
 		Where("game_erogs.brand_erogs_id = ?", brandID).
 		Find(&games).Error
 	return games, err
@@ -66,8 +69,7 @@ func GetGameErogsByBrandID(db *gorm.DB, brandID int) ([]GameErogs, error) {
 
 func GetGameErogsByID(db *gorm.DB, id int) (GameErogs, error) {
 	var game GameErogs
-	err := db.Select("game_erogs.*, games.image_url AS game_image_url").
-		Joins("LEFT JOIN games ON games.erogs_id = game_erogs.id").
+	err := withGamesFallbackImage(db.Model(&GameErogs{})).
 		Where("game_erogs.id = ?", id).
 		First(&game).Error
 	return game, err

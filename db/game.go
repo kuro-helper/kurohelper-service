@@ -1,8 +1,10 @@
 package db
 
 import (
+	"errors"
 	"time"
 
+	"github.com/jackc/pgx/v5/pgconn"
 	"gorm.io/gorm"
 )
 
@@ -52,6 +54,34 @@ func GetGameByErogsID(db *gorm.DB, erogsID int) (Game, error) {
 	var item Game
 	err := db.Where("erogs_id = ?", erogsID).First(&item).Error
 	return item, err
+}
+
+// EnsureGameByErogsID 依 erogs_id 確保列存在；已存在則回傳，不覆蓋 image_url
+func EnsureGameByErogsID(db *gorm.DB, erogsID int, updatedUser int) (Game, error) {
+	if erogsID <= 0 {
+		return Game{}, ErrParameterNotFound
+	}
+
+	item, err := GetGameByErogsID(db, erogsID)
+	if err == nil {
+		return item, nil
+	}
+	if !errors.Is(err, gorm.ErrRecordNotFound) {
+		return Game{}, err
+	}
+
+	id := erogsID
+	item, err = CreateGame(db, &id, "", updatedUser)
+	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
+			if existing, getErr := GetGameByErogsID(db, erogsID); getErr == nil {
+				return existing, nil
+			}
+		}
+		return Game{}, err
+	}
+	return item, nil
 }
 
 func UpdateGameImageURL(db *gorm.DB, id int, imageURL string, updatedUser int) error {

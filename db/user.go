@@ -32,6 +32,7 @@ type User struct {
 
 	Auth      *UserAuth  `gorm:"foreignKey:UserID" json:"-"`
 	UserGames []UserGame `gorm:"foreignKey:UserID" json:"userGames"`
+	Titles    []Title    `gorm:"many2many:user_titles" json:"titles,omitempty"`
 }
 
 func EnsureDiscordUser(db *gorm.DB, discordID, userName string) error {

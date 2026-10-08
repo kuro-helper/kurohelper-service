@@ -2,14 +2,16 @@ package db
 
 import (
 	"errors"
+	"time"
 
 	"github.com/jackc/pgx/v5/pgconn"
 	"gorm.io/gorm"
 )
 
 type UserTitle struct {
-	UserID  int `gorm:"primaryKey;autoIncrement:false" json:"userId"`
-	TitleID int `gorm:"primaryKey;autoIncrement:false" json:"titleId"`
+	UserID    int       `gorm:"primaryKey;autoIncrement:false" json:"userId"`
+	TitleID   int       `gorm:"primaryKey;autoIncrement:false" json:"titleId"`
+	CreatedAt time.Time `gorm:"autoCreateTime" json:"createdAt"`
 
 	User  *User  `gorm:"foreignKey:UserID;references:ID;constraint:OnDelete:CASCADE" json:"-"`
 	Title *Title `gorm:"foreignKey:TitleID;references:ID;constraint:OnDelete:CASCADE" json:"-"`

@@ -28,8 +28,13 @@ func Migration(db *gorm.DB) error {
 	if err := dropErogsNameUniqueConstraints(db); err != nil {
 		return err
 	}
+	if err := db.SetupJoinTable(&User{}, "Titles", &UserTitle{}); err != nil {
+		return err
+	}
 	if err := db.AutoMigrate(
+		&Title{},
 		&User{},
+		&UserTitle{},
 		&UserAuth{},
 		&UserGame{},
 		&UserCheckIn{},

@@ -60,6 +60,23 @@ func GetUserGameFinishedByID(db *gorm.DB, userID int) ([]UserGame, error) {
 	return hasPlayed, nil
 }
 
+func GetUserGamesByStatus(db *gorm.DB, status UserGameStatus) ([]UserGame, error) {
+	var userGames []UserGame
+
+	err := db.
+		Model(&UserGame{}).
+		Preload("GameErogs", withGamesFallbackImage).
+		// Preload("GameErogs.BrandErogs").
+		Where("status = ?", status).
+		Order("COALESCE(finished_date, created_at) DESC").
+		Find(&userGames).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return userGames, nil
+}
+
 // 有transaction，因為要先檢查DiscordID正確性，到時候再往上移
 func GetUserGameByDiscordID(db *gorm.DB, discordID string) ([]UserGame, error) {
 	var hasPlayed []UserGame

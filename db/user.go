@@ -112,6 +112,17 @@ func GetAllUsers(db *gorm.DB) ([]User, error) {
 	return user, nil
 }
 
+func GetUsersByPrivateGameData(db *gorm.DB, privateGameData bool) ([]User, error) {
+	var users []User
+
+	err := db.Where("private_game_data = ?", privateGameData).Find(&users).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return users, nil
+}
+
 // 依據 discordID 更新 PrivateGameData 欄位
 func UpdateUserPrivateGameDataByDiscordID(db *gorm.DB, discordID string, privateGameData bool) error {
 	return db.Model(&User{}).

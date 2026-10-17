@@ -39,6 +39,7 @@ type UserGame struct {
 	UpdatedAt    time.Time  `gorm:"autoUpdateTime" json:"updatedAt"`
 
 	GameErogs *GameErogs `gorm:"foreignKey:GameErogsID;references:ID" json:"gameErogs,omitempty"` // 單向 preload
+	User      *User      `gorm:"foreignKey:UserID;references:ID" json:"user,omitempty"`
 	// Game *Game `gorm:"foreignKey:GameID;references:ID" json:"game"`
 }
 
@@ -66,7 +67,8 @@ func GetUserGamesByStatus(db *gorm.DB, status UserGameStatus) ([]UserGame, error
 	err := db.
 		Model(&UserGame{}).
 		Preload("GameErogs", withGamesFallbackImage).
-		// Preload("GameErogs.BrandErogs").
+		Preload("GameErogs.BrandErogs").
+		Preload("User").
 		Where("status = ?", status).
 		Order("COALESCE(finished_date, created_at) DESC").
 		Find(&userGames).Error

@@ -67,6 +67,16 @@ func GetGameErogsByBrandID(db *gorm.DB, brandID int) ([]GameErogs, error) {
 	return games, err
 }
 
+func SearchGameErogsByName(db *gorm.DB, namePattern string, limit int) ([]GameErogs, error) {
+	var games []GameErogs
+	err := withGamesFallbackImage(db.Model(&GameErogs{})).
+		Where(`game_erogs.name ILIKE ? ESCAPE '\'`, namePattern).
+		Order("game_erogs.name ASC").
+		Limit(limit).
+		Find(&games).Error
+	return games, err
+}
+
 func GetGameErogsByID(db *gorm.DB, id int) (GameErogs, error) {
 	var game GameErogs
 	err := withGamesFallbackImage(db.Model(&GameErogs{})).

@@ -38,3 +38,12 @@ func GetAllBrandErogs(db *gorm.DB) ([]BrandErogs, error) {
 	err := db.Find(&brands).Error
 	return brands, err
 }
+
+func SearchBrandErogsByName(db *gorm.DB, namePattern string, limit int) ([]BrandErogs, error) {
+	var brands []BrandErogs
+	err := db.Where(`name ILIKE ? ESCAPE '\'`, namePattern).
+		Order("name ASC").
+		Limit(limit).
+		Find(&brands).Error
+	return brands, err
+}

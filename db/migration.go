@@ -37,6 +37,7 @@ func Migration(db *gorm.DB) error {
 		&UserTitle{},
 		&UserAuth{},
 		&UserGame{},
+		&UserGameArticle{},
 		&UserCheckIn{},
 		&AppConfig{},
 		&Announcement{},

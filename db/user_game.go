@@ -3,6 +3,7 @@ package db
 import (
 	"errors"
 	"fmt"
+	"math"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgconn"
@@ -24,6 +25,15 @@ func ValidUserGameStatus(status UserGameStatus) bool {
 	return status >= UserGameStatusNone && status <= UserGameStatusDropped
 }
 
+func ValidUserGameRating(rating *float64) bool {
+	if rating == nil {
+		return true
+	}
+	value := *rating
+	return !math.IsNaN(value) && !math.IsInf(value, 0) && value >= 0 && value <= 100 &&
+		value == math.Round(value*10)/10
+}
+
 type UserGame struct {
 	UserID      int `gorm:"primaryKey;autoIncrement:false" json:"userId"`
 	GameErogsID int `gorm:"primaryKey;autoIncrement:false" json:"gameErogsId"`
@@ -32,6 +42,8 @@ type UserGame struct {
 	Status        UserGameStatus `gorm:"not null;default:0" json:"status"`
 	WishListMark  bool           `gorm:"not null;default:false" json:"wishListMark"`
 	BlackListMark bool           `gorm:"not null;default:false" json:"blackListMark"`
+	Rating        *float64       `gorm:"type:numeric(4,1)" json:"rating"`
+	Comment       string         `gorm:"type:varchar(100);not null;default:''" json:"comment"`
 
 	StartDate    *time.Time `json:"startDate,omitempty"`
 	FinishedDate *time.Time `json:"finishedDate,omitempty"`
@@ -184,7 +196,12 @@ func CreateUserGame(
 	status UserGameStatus,
 	wishListMark, blackListMark bool,
 	startDate, finishedDate *time.Time,
+	rating *float64,
+	comment string,
 ) error {
+	if !ValidUserGameRating(rating) {
+		return ErrInvalidRating
+	}
 	if _, err := GetGameErogsByID(db, gameErogsID); err != nil {
 		return err
 	}
@@ -197,6 +214,8 @@ func CreateUserGame(
 		BlackListMark: blackListMark,
 		StartDate:     startDate,
 		FinishedDate:  finishedDate,
+		Rating:        rating,
+		Comment:       comment,
 	}
 
 	if err := db.Create(&userGame).Error; err != nil {
@@ -268,18 +287,26 @@ func UpdateUserGame(
 	status UserGameStatus,
 	wishListMark, blackListMark bool,
 	startDate, finishedDate *time.Time,
+	rating *float64,
+	comment string,
 ) error {
+	if !ValidUserGameRating(rating) {
+		return ErrInvalidRating
+	}
+	update := UserGame{
+		Status:        status,
+		WishListMark:  wishListMark,
+		BlackListMark: blackListMark,
+		StartDate:     startDate,
+		FinishedDate:  finishedDate,
+		Rating:        rating,
+		Comment:       comment,
+		UpdatedAt:     time.Now(),
+	}
 	res := db.Model(&UserGame{}).
 		Where("user_id = ? AND game_erogs_id = ?", userID, gameErogsID).
-		Select("status", "wish_list_mark", "black_list_mark", "start_date", "finished_date", "updated_at").
-		Updates(UserGame{
-			Status:        status,
-			WishListMark:  wishListMark,
-			BlackListMark: blackListMark,
-			StartDate:     startDate,
-			FinishedDate:  finishedDate,
-			UpdatedAt:     time.Now(),
-		})
+		Select("status", "wish_list_mark", "black_list_mark", "start_date", "finished_date", "rating", "comment", "updated_at").
+		Updates(update)
 	if res.Error != nil {
 		return res.Error
 	}

@@ -43,6 +43,7 @@ type UserGame struct {
 	WishListMark  bool           `gorm:"not null;default:false" json:"wishListMark"`
 	BlackListMark bool           `gorm:"not null;default:false" json:"blackListMark"`
 	Rating        *float64       `gorm:"type:numeric(4,1)" json:"rating"`
+	Comment       string         `gorm:"type:varchar(100);not null;default:''" json:"comment"`
 
 	StartDate    *time.Time `json:"startDate,omitempty"`
 	FinishedDate *time.Time `json:"finishedDate,omitempty"`
@@ -196,6 +197,7 @@ func CreateUserGame(
 	wishListMark, blackListMark bool,
 	startDate, finishedDate *time.Time,
 	rating *float64,
+	comment string,
 ) error {
 	if !ValidUserGameRating(rating) {
 		return ErrInvalidRating
@@ -213,6 +215,7 @@ func CreateUserGame(
 		StartDate:     startDate,
 		FinishedDate:  finishedDate,
 		Rating:        rating,
+		Comment:       comment,
 	}
 
 	if err := db.Create(&userGame).Error; err != nil {
@@ -285,6 +288,7 @@ func UpdateUserGame(
 	wishListMark, blackListMark bool,
 	startDate, finishedDate *time.Time,
 	rating *float64,
+	comment string,
 ) error {
 	if !ValidUserGameRating(rating) {
 		return ErrInvalidRating
@@ -296,11 +300,12 @@ func UpdateUserGame(
 		StartDate:     startDate,
 		FinishedDate:  finishedDate,
 		Rating:        rating,
+		Comment:       comment,
 		UpdatedAt:     time.Now(),
 	}
 	res := db.Model(&UserGame{}).
 		Where("user_id = ? AND game_erogs_id = ?", userID, gameErogsID).
-		Select("status", "wish_list_mark", "black_list_mark", "start_date", "finished_date", "rating", "updated_at").
+		Select("status", "wish_list_mark", "black_list_mark", "start_date", "finished_date", "rating", "comment", "updated_at").
 		Updates(update)
 	if res.Error != nil {
 		return res.Error
